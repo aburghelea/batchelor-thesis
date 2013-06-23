@@ -2,5 +2,48 @@
 \label{chapter:related-work}
 
 \todo{Describe related work}
+A large number of articles describe the work done to solve the problem of autopilots
+UAV swarms, communication and coordinate systems exists. In the following paragraphs
+I will describe the main ideas and trade-offs for each described solutions.
 
-We can also have citations like \cite{iso-odf}.
+The autopilot problem is well covered in the literature and from real life practice
+it is considered that the architecture is one that is stratified. Each layer
+is responsible for receiving commands from the superior layer, deciding if the
+the command would put the UAV in a state of imbalance or danger in general and
+forwarding the command to the layer below. If a possible imbalance state is detected
+the layer either discards the received command and does not send any command to 
+the next layer,  or it tweaks the command so that a incoherent state would not
+be induced.
+
+The architecture as proposed by Borges de Sousa et. al \cite{pivant} would have
+the following layers:
+
+\begin{description}
+\item[Platform] The UAV vehicle with all the hardware
+\item[Maneuverer controller] Controller that decides what hardware action is 
+executed (roll, pitch, yaw)
+\item[Vehicle supervisor] Basic autopilot capable to make simple decisions 
+(setting the target speed,  setting the heading)
+\item[Mission supervisor] Artificial Intelligence System that plans the mission
+based on a template and the rest of the drones. It forwards the commands to the
+Vehicle Supervisor for validation
+\item[External controller] Human factor that can interfere between the Mission
+Supervisor and Vehicle Supervisor to override or even deactivate the first one.
+\end{description}
+
+The architecture imagined by Borges de Souse can be seen in \labelindexref{Figure}{img:vechicle-arhitecture}.
+
+\fig[scale=0.5]{src/img/vechicle-control-arhitecture.png}{img:vechicle-arhitecture}
+{Vehicle Control Architecture}
+
+\newpage
+The advantages provided by this kind of architecture is the separation of
+concerns for each level and the fact that the repair in case of failure can be
+easily detected and fixed. The only draw-back of this approach is the fact
+that in the case of poor implementation it could introduce a latency in communication
+loosing the possibility of having a real time system.
+
+In the implementation my autopilot system is similar to the one described above 
+because the Hirrus drone \cite{hirrus} provided by \abbrev{TNI} already contains
+a maneuver controller,vehicle supervisor  and an external controller. Thus my
+system would act as a mission supervisor.
