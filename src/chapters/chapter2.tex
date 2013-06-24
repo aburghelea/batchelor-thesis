@@ -19,15 +19,15 @@ The architecture as proposed by Borges de Sousa et. al \cite{pivant} would have
 the following layers:
 
 \begin{description}
-\item[Platform] The UAV vehicle with all the hardware
-\item[Maneuverer controller] Controller that decides what hardware action is 
+\item[Platform] \hfill \\ The UAV vehicle with all the hardware
+\item[Maneuverer controller] \hfill \\ Controller that decides what hardware action is 
 executed (roll, pitch, yaw)
-\item[Vehicle supervisor] Basic autopilot capable to make simple decisions 
+\item[Vehicle supervisor] \hfill \\ Basic autopilot capable to make simple decisions 
 (setting the target speed,  setting the heading)
-\item[Mission supervisor] Artificial Intelligence System that plans the mission
+\item[Mission supervisor] \hfill \\ Artificial Intelligence System that plans the mission
 based on a template and the rest of the drones. It forwards the commands to the
 Vehicle Supervisor for validation
-\item[External controller] Human factor that can interfere between the Mission
+\item[External controller] \hfill \\ Human factor that can interfere between the Mission
 Supervisor and Vehicle Supervisor to override or even deactivate the first one.
 \end{description}
 
@@ -44,7 +44,7 @@ that in the case of poor implementation it could introduce a latency in communic
 loosing the possibility of having a real time system.
 
 In the implementation my autopilot system is similar to the one described above 
-because the Hirrus drone \cite{hirrus} provided by \abbrev{TNI} already contains
+because the Hirrus drone \cite{hirrus} provided by TNI already contains
 a maneuver controller,vehicle supervisor  and an external controller. Thus my
 system would act as a mission supervisor.
 
@@ -82,3 +82,119 @@ or for escaping a danger zone.
 
 Although Richards proposes uses a long range unsynchronized flight team, in my 
 implementation I used a similar approach for obtaining a synchronized formation.
+
+Gaudiano and his team research the possibility to explore a zone based on the 
+strategies used by schools of fish,  flocks of birds and swarms of insects. 
+The research they published in \cite{bugs} and \cite{paradigm} is based on 
+mimicking the pheromones left behind by the swarms of insects. To be able to 
+replicate the insects behavior, Gaudiano assumed that each UAV is aware of the 
+terrain geometry, is equipped with a sensor that provides a forward code of vision
+able to detect elevation and distance, has a sensor to detect the other UAVs 
+in a given sphere, is positioned using GPS-like coordinates and has a sensor
+that mimics the pheromone detection. The later sensor detects, within a rectangular
+region centered on the UAV, the coverage of the current cell. In their simulation
+they have used a global communication system that was able to assure data flow
+between each two UAVs. The strategy to control the UAVs is implemented in a 
+decentralized way where each UAV can decide what action to execute. Gaudiano 
+tested 5 strategies to explore an area:
+
+\begin{description}
+\item[Baseline] \hfill \\ Each UAV starts with a different heading, flies in a straight line
+until the area limit is reached and then turns so that it doesn't leave the area.
+\item[Random] \hfill \\ Is similar to the baseline implementation but at each time step, 
+the UAV will change it's heading by a small random angle.
+\item[Repulsion] \hfill \\ An UAV can detect the other UAVs on a given radius and it changes
+it's heading so that they do not intersect.
+\item[Pheromone] \hfill \\ Each UAV is able to detect the already explored cells and changes it's
+heading so that it heads in the direction of unexplored cells.
+\item[Global]  \hfill \\ The area is divided in smaller regions an an UAV know how many 
+UAVs are in ore region and based on that it decides what region to explore.
+\end{description}
+
+Based on their experiments they have discovered that the most efficient way to
+obtain a higher coverage is the pheromone strategy. Compared to the repulsion 
+strategy that obtained a 44\% coverage while the pheromone strategy obtained a 
+60\%. These coverages were obtained using 10 UAVs. The same experiments showed
+that scaling to larger UAV swarms presents a drawback represented by the fact
+that although the coverage efficiency increases with the number of UAVs,  
+their relative efficiency decreases. While on a very large area 10 UAVs would
+cover 6\%,  110 UAVs would cover only 33\%.
+
+In contrast with the approaches form above,  Nowak centered his research on 
+creating a self organized swarm. To achieve this he created a two tired architecture
+for a \abbrev{SO}{Self Organized} System Model that separates the implementation 
+details from the real world agents behavior. This architecture (as presented in
+  \cite{so}) can be seen in  \labelindexref{Figure}{img:tireso}.
+
+\fig[scale=0.5]{src/img/tireso.png}{img:tireso}{Three tier SO architecture}
+\newpage
+
+The behavior of many cooperative agents in the same are is a behavior that
+has been studied in detail by many researchers. Reynolds proposed in 1987, 
+three fundamental rules for swarming: \cite{swarmrules}
+
+\begin{description}
+\item [Separation] \hfill \\ The UAV must steer away from the nearest neighbors to avoid crowding.
+\item [Cohesion] \hfill \\ The UAV must steer towards the average position of its neighbors.
+\item [Alignment] \hfill \\ The UAV must steer towards an average heading of the neighbors.
+\end{description}
+
+A visual representation can be seen in \labelindexref{Figure}{img:3rules}
+
+\fig[scale=0.2]{src/img/fundamental-swarming-rules.png}{img:3rules}{Fundamental Swarming Rules}
+
+Based on Reynolds rules, Nowak implemented in SWARMFARE 10 rules for a coherent
+formation flight \cite{so}:
+
+\begin{description}
+\item [Flat Align] \hfill \\ vector align neighbors
+\item [Target Orbit] \hfill \\ orbit target at safe distance
+\item [Cluster Range Towards] \hfill \\ cohesion
+\item [Cluster Range Away] \hfill \\ separation
+\item [Attract] \hfill \\ towards center of mass of all targets
+\item [Weighted Attract] \hfill \\ towards closest target
+\item [Target Repel] \hfill \\ repel if with 90\% of UAV sensor range
+\item [Weighted Target Repel] \hfill \\ repulsion based on proximity to target
+\item [Evade] \hfill \\ Apriori collision detection and avoidance
+\item [Obstacle Avoidance] \hfill \\ Real time obstacle avoidance
+\end{description}
+
+The difference between the previous approaches and Nowaks is that the later
+considers at no point an agent will give commands such as "Slow down", "Turn" or
+"Dive". Each UAV is responsible for computing what action to execute based on 
+a minimal set of date received from the other UAVs. A possible set of data
+is formed from:
+\begin{itemize}
+\item GPS coordinates;
+\item altitude;
+\item speed; and
+\item heading
+\end{itemize}
+
+To test the SWARMFARE framework, Nowak opted to paralyze the computation
+using a Master-Slave architecture. The resulting parallel time calculation
+results from the equation:
+
+\begin{equation}
+T_{p} = k (t_{s}+t_{w}m)(p-1) + \frac{n^{ck}}{p}
+\qquad\parbox{4.0cm}{\footnotesize$\begin{aligned} k &= \text{ number of generations}
+\\[-1.0ex] t_{s} &= \text{ setup time}
+  \\[-1.0ex] t_{w} &= \text{ transfer time}
+  \\[-1.0ex] p &= \text{ Number of processors}
+  \\[-1.0ex] n &= \text{ Number in population}
+  \\[-1.0ex] p &= \text{ constant defining the variable}
+  \\[-1.0ex] n^ck &= \text{ linear calculation time}
+\end{aligned}$}
+\label{eqn: nowak-paralel-time}
+\end{equation}
+
+The time obtained by using a initial population of 2 per node
+is 540 minutes for one node and 80 minutes for 16 nodes.
+
+The SWARMFARE is a work in progress and the trade-offs that could appear only
+from the implementation of the 10 rules. 
+
+The Autonomous UAV project proposes to implement an autopilot that integrates
+the behaviors depicted by the rules proposed by Nowak. The formation flight module
+implement in this thesis will integrate with the obstacle avoidance module and
+surveillance modules developed by my colleagues. 
