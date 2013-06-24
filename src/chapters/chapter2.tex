@@ -47,3 +47,38 @@ In the implementation my autopilot system is similar to the one described above
 because the Hirrus drone \cite{hirrus} provided by \abbrev{TNI} already contains
 a maneuver controller,vehicle supervisor  and an external controller. Thus my
 system would act as a mission supervisor.
+
+In the terms of UAV teams, Mark D. Richards and his colleagues \cite{cooperative}
+identify two main groups of strategies. The first one,  called \textbf{Behavior-based
+Control systems}, use a mesh of interacting high-level behaviors to perform a 
+task. The second one, \textbf{Deliberative System}, acts by creating a specific
+flight path for each individual UAV to follow. This second behavior is a 
+generalization of the search path optimization that  Ablavsky proposes in 
+  \cite{path-optimization}. Ablavsky approaches the problem by following the 
+following steps:
+
+\begin{enumerate}
+\item Restrict the search area based on the mobility of the target.
+\item Divide the search area in to the smallest number of sub-regions keeping in
+mind the constrains of the aircraft.
+\item Determine a search pattern for each sub-region with the property of assuring
+full coverage with a minimized path length.
+\item Combine the individual results into an optimal global path.
+\end{enumerate}
+
+The deliberative approach used by Richards is based on dividing an area for 
+each UAV and generating inside the designated zone a flight path to be followed.
+For achieving some degree of flexibility, Richards opted not to use an adaptive
+replanning where a central controller computes a specific flight path for each
+agent and and then broadcasts it to the team. The drawbacks of this approach are
+represented by the fact that there would still be a single point of failure and
+the fact that by the time the plan is sent to the UAV it may be already be 
+deprecated. The approach that was used was a reactive one. The initial path
+is computed and if an hostile condition is generated each UAV has to determine
+a way to exit that state. By these means Richards managed to sweep an area
+that is divided in sub-zones with different degrees of danger and even a no fly
+zone. The reactive behavior was useful for avoid collision with a friendly unit
+or for escaping a danger zone.
+
+Although Richards proposes uses a long range unsynchronized flight team, in my 
+implementation I used a similar approach for obtaining a synchronized formation.
