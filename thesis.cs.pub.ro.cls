@@ -22,7 +22,8 @@
 \usepackage[utf8x]{inputenc}
 %\usepackage[english,romanian]{babel}
 \usepackage[english]{babel}
-
+\usepackage{fixltx2e}
+\usepackage{hyperref}
 \usepackage{makeidx}
 
 \usepackage[top=3.5cm, bottom=3.5cm, left=3.5cm, right=3cm]{geometry}

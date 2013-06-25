@@ -177,8 +177,9 @@ results from the equation:
 
 \begin{equation}
 T_{p} = k (t_{s}+t_{w}m)(p-1) + \frac{n^{ck}}{p}
-\qquad\parbox{4.0cm}{\footnotesize$\begin{aligned} k &= \text{ number of generations}
-\\[-1.0ex] t_{s} &= \text{ setup time}
+\qquad\parbox{4.0cm}{\footnotesize$\begin{aligned} 
+ k &= \text{ number of generations}
+  \\[-1.0ex] t_{s} &= \text{ setup time}
   \\[-1.0ex] t_{w} &= \text{ transfer time}
   \\[-1.0ex] p &= \text{ Number of processors}
   \\[-1.0ex] n &= \text{ Number in population}
@@ -239,3 +240,59 @@ The results published in \cite{tracking} can be seen \labelindexref{Figure}{img:
 of the UAV as it avoids an obstacle indicated by the black box}
 \newpage
 
+When using cameras to detect obstacles, the angular velocity of gyroscope often
+has a large amount of noise, mostly because of the yaw angle or wind. Thus
+the angular velocity has to be estimated using another type of on-board sensor. 
+
+He approaches this problem by following the following steps \cite{vision-based}:
+\begin{enumerate}
+\item Classify the image blocks in structural and non-structural maps
+\item Find multiple "best" motion vectors instead of a single one and chose the
+best one using a predefined metric
+\item Using the data about structural motion, estimate the camera motion to reduce
+uncertainty in the motion for non-structural blocks.
+\end{enumerate}
+
+In the same article \cite{vision-based} uses the following two formulas to
+compensate the motion noise of the camera:
+
+
+\begin{equation}
+m(O_{B}, r) = \frac{1}{ | C(O_{B}, r |}\oint_{C(O_{B}, r)}I_{t}(x, y)dxdy,  0 < r \leq R
+  \label{eqn:intensity-profile-pixel}s
+\end{equation}
+
+Where: 
+\begin {itemize}
+  \item {O}\textsubscript{B} = (X\textsubscript{B}, Y\textsubscript{B}) center of block B
+  \item C(O\textsubscript{B} , r) = circle center in O\textsubscript{B}  with radius r
+  \item R = maximum radius to search
+  \item m(O\textsubscript{B} , r) = intensity profile of pixel O\textsubscript{B}  or block B
+\end {itemize}
+
+ 
+\begin{equation}
+d_{1}(A, B) = \min_{1 - \delta \leq  \lambda \leq 1 + \delta} \max_{0 \leq r \leq \frac{R}{\lambda}} | m(O_{A},  \lambda r) - m(O_{B}, r) |
+\label{eqn:distance-block}
+\end{equation}
+
+Where: 
+\begin {itemize}
+  \item $\lambda$ = scaling factor
+  \item $[1 - \delta, 1 + \delta]$  = search range for $\lambda$
+\end {itemize}
+
+From \labelindexref{Equiation}{eqn:intensity-profile-pixel} and 
+\labelindexref{Equiation}{eqn:distance-block} the distance between blocks A and B
+can be computed with the following formula:
+
+\begin{equation}
+d(A, B) = w d_{0}(A, B) + (1 - w) d_{1}(A, B)
+\qquad\parbox{4.0cm}{\footnotesize$\begin{aligned} 
+  w &= \text{ weighted factor }
+  \end{aligned}$}
+\label{eqn: distance-block}
+\end{equation}
+
+The formation flight module implemented for this thesis will integrate with 
+a module of collision avoidance based on the \abbrev{ORCA}{Optical Recognition Collision Avoidance}
