@@ -126,7 +126,7 @@ for a \abbrev{SO}{Self Organized} System Model that separates the implementation
 details from the real world agents behavior. This architecture (as presented in
   \cite{so}) can be seen in  \labelindexref{Figure}{img:tireso}.
 
-\fig[scale=0.5]{src/img/tireso.png}{img:tireso}{Three tier SO architecture}
+\fig[scale=0.7]{src/img/tireso.png}{img:tireso}{Three tier SO architecture}
 \newpage
 
 The behavior of many cooperative agents in the same are is a behavior that
@@ -197,4 +197,45 @@ from the implementation of the 10 rules.
 The Autonomous UAV project proposes to implement an autopilot that integrates
 the behaviors depicted by the rules proposed by Nowak. The formation flight module
 implement in this thesis will integrate with the obstacle avoidance module and
-surveillance modules developed by my colleagues. 
+surveillance modules developed by my colleagues.
+
+Based on the communication mode,  there are two main methods for implementing 
+UAV formation flight: coordinated or cooperative. Bourgault et. al. depict the
+difference between the two modes in \cite{bayesian}. According to them
+in coordinated approach each agent decides what actions to execute based
+on the current knowledge of the world but there is no possibility that the actions
+of an agent to influence the decisions of another. The cooperative mode has the
+advantage that agents negotiate what actions to execute, thus obtaining a 
+global optimal solution. On the other side the coordinated mode obtains a 
+suboptimal solution, but has the advantage that the individual computation 
+time does not increase with the number of agents.
+
+For a close range formation there are necessary both these modes. The coordinated
+mode is useful for computing the position in the formation for each aircraft 
+and the cooperative mode is useful for a collision avoidance module so that
+the aircrafts do not collide. Similar to Bourgault I implemented the coordinated
+mode with a one-step look-ahead.
+
+For obtaining obstacle avoidance it's necessary to have a reactive system combined
+with a cooperative decision making algorithm. Call et. al tried to implement
+such a system by obtaining data from video cameras. The cameras are preferred
+because they are passive,  lightweight,  simple and inexpensive sensors. The
+drawback for these sensors is represented by the fact that under low-visibility, 
+such as fog, smoke or night, have reduced efficiency. Also the processing of the
+information could have high computation time. In the research paper \cite{tracking}, 
+they have managed to obtain three dimensional data from cameras either by using
+a stereo vision system or by using multiple frames from one camera. They have
+found out that the relative position of an object can be obtained with a an
+enough amount of information by using a single camera and multiple frames. The 
+main problem with detecting obstacles is that most of the existing algorithms 
+are based on detecting a texture variation or the detection of corners. Problems
+in detecting obstacles appear when the objects are described by parallel lines 
+with no visible endpoint or have no texture. Another case when the algorithm could
+fail is when the obstacles have reflective glass surfaces.
+
+The results published in \cite{tracking} can be seen \labelindexref{Figure}{img:tracking}
+
+\fig[scale=1]{src/img/tracking.png}{img:tracking}{Overhead view of the flight path
+of the UAV as it avoids an obstacle indicated by the black box}
+\newpage
+
