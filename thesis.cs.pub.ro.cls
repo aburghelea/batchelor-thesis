@@ -20,8 +20,11 @@
 % Romanian Language support
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
-%\usepackage[english,romanian]{babel}
+\usepackage[english,romanian]{babel}
 \usepackage[english]{babel}
+
+\usepackage{paralist}
+\usepackage{amsmath}
 \usepackage{fixltx2e}
 \usepackage{hyperref}
 \usepackage{makeidx}
