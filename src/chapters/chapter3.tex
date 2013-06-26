@@ -3,7 +3,6 @@
 
 \section{Architecture}
 \label{sec:architecture}
-\todo {Describe architecture}
 For the Autonomous UAV platform we have used an architecture based on multiple
 agents that communicate with the \textit{Mission Supervisor} via a CAN
 \abbrev{Controller Area Network}. The CAN will also be able to route messages
@@ -54,13 +53,50 @@ The date that it monitors includes heading, speed,  position etc.
 Module responsible for deciding the flight path
 \item [Collision Avoidance] \hfill \\
 Reactive module responsible for detecting and avoiding in flight collisions.
-\item [Formation Flight] ] \hfill \\
+\item [Formation Flight] \hfill \\
 Module responsible for coordinating a fleet of UAVs for maintaining a coherent
 flight formation.
 \end{description}
 
+This thesis handles the \project module that will be integrated with the other
+modules developed in the Autonomous UAV project to obtain an automated pilot
+that will be used for controlling the Hirrus UAV \cite{hirrus}.
+
 \section{Functionalities}
 \label{sec:functionalities}
-\todo{describe functionalities}
 
-\todo{Describe management framework}
+The platform has the roles of:
+\begin{enumerate}
+\item Setting the flight mission objectives.
+\item Selecting the flight area.
+\item Selecting the aircraft types.
+\item Configuring the sensors for each aircraft.
+\item Based on the settings from above, generate and upload a configuration file
+to each aircraft.
+\item After the airplanes are airborne, they will be supervised using the 
+ground control module.
+\item To control the airplanes in an autonomous way, where human intervention is
+needed at least as possible.
+\item Override the \textit{Mission Supervisor} or completely deactivate it, 
+switching to a RC Controlled state.
+\end{enumerate}
+
+For using the platform a will act as described below.
+
+Using the custom widget built in QGroundControl will configure the flight objectives, 
+selecting the number of aircrafts that will be launched, the type of sensor that
+will be equipped on each drone. Also the user has to create a flight path for 
+each UAV if they are not fling in a tight formation. If the drone will fly in 
+a close ranged formation, the user has to designate a leader and create a flight
+plan for him, the other UAVs will follow his path. In the case of close ranged 
+formation, the user will specify the kind of formation that will be used (eg: 
+  V formation, Line formation). After the mission details have been set, the user
+will generate a configuration file that contains a rule based language that
+is close to the natural language and that will be interpreted by a CLIPS engine.
+The configuration file will be uploaded on the UAVs. When the drones are ready
+they are airborne and the autonomous pilot will guide to follow the mission.
+From this point their mission can be overseen using QGroundControl where their
+flight path is displayed on the map and where their telemetry is also displayed.
+In case of necessity, the user will send additional commands to the drones, or
+it will will switch the drone to RC mode and return it to base.
+
