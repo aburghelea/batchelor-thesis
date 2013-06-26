@@ -3,8 +3,62 @@
 
 \section{Architecture}
 \label{sec:architecture}
-
 \todo {Describe architecture}
+For the Autonomous UAV platform we have used an architecture based on multiple
+agents that communicate with the \textit{Mission Supervisor} via a CAN
+\abbrev{Controller Area Network}. The CAN will also be able to route messages
+to other CAN buses. 
+
+The testing architecture can be seen in  \labelindexref{Figure}{img:platform-architecture}.
+
+\fig[scale=0.5]{src/img/platform-architecture.png}{img:platform-architecture}
+{Autonomous UAV testing framework}.
+\newpage
+In \labelindexref{Figure}{img:platform-architecture}, the components are as
+follows:
+\begin{description}
+\item [FG\textsubscript{1..n}\abbrev{FG}{Flight Gear Instance}] FlightGear Flight Simulator. Simulator responsible
+flying a single drone.
+\item [FGMS\abbrev{FGMS}{FlightGear Multi-Player Server}] \hfill \\ FlightGear Multi-Player Server. It has the role of broadcasting
+information about UAVs between multiple instances of \textit{FlightGear Flight Simulator}
+\item [RPI\textsubscript{1..n}\abbrev{RPI}{Raspberry PI}] \hfill \\Raspberry PI Computer. Runs the \textit{Mission Supervisor}.
+\item [CAN\textsubscript{1..n}\abbrev{CAN}{Controller Area Network}] \hfill \\ CAN Interface Simulator. Mimics the behavior of 
+a CAN bus and sends messages between a \textit{Flight Gear Flight Simulator} 
+instance a \textit{Raspberry PI Mission Supervisor}
+\item [R] \hfill \\ CAN Interface Router. Broadcasts the telemetry position from one
+\textit{Flight Gear Flight Simulator} instance to the rest of the instances.
+\item [QGC\abbrev{QGC}{QGroundControl}] \hfill \\ QGroundControl. Ground Control Software responsible of collecting data
+from all the UAVs and plotting them on a map for visualizing the flight path.
+\end{description}
+
+In the Autonomous UAV project, QGC also has the role to prepare the mission plan
+that will be uploaded on each UAV.
+
+The \textit {Mission Supervisor} architecture is depicted in  \labelindexref
+{Figure}{img:rpi-architecture}.
+
+\fig[scale=0.5]{src/img/rpi-architecture.png}{img:rpi-architecture}{Mission 
+Supervisor Architecture.}
+\newpage
+In \labelindexref{Figure}{img:rpi-architecture}, the components are as
+follows:
+\begin{description}
+\item [IO Manger] \hfill \\
+Input-Output module responsible for communicating with the UAV via the CAN bus 
+and passing the date to the flight modules.
+\item [Clips Engine] \hfill \\
+Rules based decision engine.
+\item [UAV State Manger] Module responsible for monitoring the state of the UAV.
+The date that it monitors includes heading, speed,  position etc.
+\item [Navigation] \hfill \\
+Module responsible for deciding the flight path
+\item [Collision Avoidance] \hfill \\
+Reactive module responsible for detecting and avoiding in flight collisions.
+\item [Formation Flight] ] \hfill \\
+Module responsible for coordinating a fleet of UAVs for maintaining a coherent
+flight formation.
+\end{description}
+
 \section{Functionalities}
 \label{sec:functionalities}
 \todo{describe functionalities}
