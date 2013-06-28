@@ -68,7 +68,7 @@ environment from different perspectives}
 
 
 \section{QGroundControl}
-\label{sec:fgfs}
+\label{sec:qgc}
 
 Another mandatory component for controlling a fleet an UAVs is a ground control
 systems, that would allow th a graphical visualization of the mission and 
@@ -114,6 +114,150 @@ In \labelindexref{Figure}{img:qgc}.
 \fig[scale=0.3]{src/img/qgc.png}{img:qgc}{QGroundControl, monitoring the flight
 path of three UAVs.}
 \newpage
-\section{MY CODE}
-\label{sec:fgfs}
+\section{Implementation}
+\label{sec:code}
 \todo{talk about code,  class-diagrams,  describe methods,  data-structures}
+
+The formation flight module was developed using the architecture describe in 
+\labelindexref{Section}{sec:architecture}.
+
+The connection between FGFS instances and QGC, the later was modified to establish
+UDP connection. For each monitored FGFS instance,  QGC opens another UDP socket
+on witch it will send data back. For communication with FGFS, QGC uses a total
+number of $n+1$ sockets, where n is the number of FGFS instances and the last
+one is the UPD input socket. Also, I have modified the communication used
+by a MAV so that it does not use MAVLink. Instead it uses a generic protocol
+based on the FGFS protocol XML. Every time a message is received it is parsed
+and the position, orientation, speed and other telemetry data are set in 
+QGC; After this data has been set a refresh signal is emitted and the position
+on the map is updated for each UAV.
+
+Another QGC widgets was also developed in the \textit{Autonomous UAV} project
+where the mission details can be configured. Using this widget a human user
+can select the number of UAVs used, their flight path, the equipment for every
+drone and the leader of the formation.
+
+The formation flight module is written in C++ using the Boost library. The 
+module connects to the CAN interface simulator via a TCP socket. When the module
+will be introduced on the Hirrus drone, on the Raspberry PI a character device
+will be crated that will read data from a CAN bus. Each drone will be equipped
+with a Raspberry PI that will run a Mission Supervisor.
+
+At startup the module reads a JSON configuration file. The configuration
+file contains the number of drone and the geometry formation. Each UAV has
+a relative altitude to another UAV, a position (left or right) to the possible 
+leader and at what distance it should be from the other UAVs. For extensibility
+reasons the JSON also contains data about the equipment.
+
+After reading the JSON file, the data is store in a data structure called 
+\textbf{uav_formation}. The \textit{uav_formation} class contains the following fields
+and methods:
+
+\begin{description}
+\item [has_leader] \hfill \\ boolean flag that specifies if the formation has a UAV leader
+or a virtual leader
+\item [name] \hfill \\ the name of the formation; eg: V Formation
+\item [drones] \hfill \\ a vector of uav_drone structures that contain data about all the
+UAVs in formation.
+\item [getLeader] \hfill \\ returns the uav_drone if the formation has a UAV leader
+\item [getDrone] \hfill \\ returns the uav_drone with the desired name
+\end{description}
+
+\newpage
+An \textbf{uav_drone} class contains the configuration for each drone of how it
+should behave in formation and has the following fields:
+
+\begin{description}
+\item [name] \hfill \\ the name of the UAV drone; eg: MAV 01
+\item [role] \hfill \\ specifies the role based on the UAV equipment; eg: Infrared Scanner
+\item [personal_space] \hfill \\ radius for a sphere were if another UAV is detected, mild
+evasive actions should be taken to avoid collision;
+\item [emergency_space] \hfill \\ radius for a shpere where if another UAV is detected, 
+the collision avoidance module will have maximum priority
+\item [is_leader] \hfill \\ boolean marker that specifies if the current drone acts
+as the leader of the formation
+\item [geometry] \hfill \\ array of uav_geometry specifying the relative position of the 
+current UAV to other UAVs
+\end{description}
+
+The \textbf{uav_geometry} contains data about the relative position to another drone and
+it contains the following fields:
+
+\begin{description}
+\item [relative_drone] \hfill \\ the UAV to witch the geometry is relative to
+\item [distance] \hfill \\ array of three values containing the height difference
+between the UAVs, the heading multiply factor (used for determining how fast a UAV
+will turn to enter formation), the distance between the UAVs
+\end{description}
+
+The module starts to send commands to the CAN Interface as soon as initial 
+position data is available about all the UAVs. Based on the number of drones
+needed in formation, the module waits until all the necessary data is received.
+As long as the initial data is not present, the UAV flight is not influenced 
+by this module.
+
+Data about each UAV is kept in a data structure called \textbf{position_container}.
+The \textit{position_container} acts as a hash map, keeping as key the name 
+of the UAV drone and as value a pair of two \textit{uav_position} structures.
+The two \textit{uav_position} instances represent the current and previous
+positions for each aircraft.
+
+The \textbf{uav_position} class is the main class of the project and is
+responsible with creating commands for Flight Gear Instance. The class
+contains the following fields:
+
+\begin{description}
+\item [id] \hfill \\ The id/name of the UAV
+\item [latitude] \hfill \\ The GPS latitude
+\item [longitude] \hfill \\ The GPS longitude
+\item [altitude] \hfill \\ The altitude difference from sea level
+\item [heading] \hfill \\ The true heading that the UAV drone is following
+\item [speed] \hfill \\ The instantaneous speed of the UAV at the time of reporting
+\item [x] \hfill \\ Value on ECEF x-axis
+\item [y] \hfill \\ Value on ECEF y-axis
+\item [z] \hfill \\ Value on ECEF z-axis
+\end{description}
+% 
+This class is also responsible for converting the GPS coordinates to ECEF coordinates
+and back. These methods are called: \textit{lla2ecef} and \textit{ecef2lla}. In 
+this class the static method \textit{parse_uav} creates a uav_position instance
+from a message received from the CAN Simulator. The received message
+is parsed using a regular expression and the position, GPS position,  altitude, 
+altitude heading and speed. After the ECEF data is set using the method 
+\textit{lla2ecef}.
+ 
+Based on the formation configuration and current position, a command is created 
+by setting the same altitude as the leader and determining the heading 
+from the current position and and the desired position. For example, if the UAV
+is on the right of the leader and has to be on his left, the UAV receives a
+true heading that is smaller than the leaders heading. The UAV maintains this heading
+until the distance from the leader is in a desired range and is in the correct
+position. On the other hand if the UAV is on the left side of the leader and
+the formation specifies that it has to be on the left side, but the distance
+from the leader is to big, a true heading that is greater than the leader is 
+reported, until the distance is in the desired range. To determine the side on
+witch the UAV resides,  from the two known position of the leader 
+the flight direction is calculated and if the point is on the left or right.
+In this calculations the altitude is ignored and considering that $A$ is the 
+leaders previous location and $B$ is the leaders current location and $C$
+is the point for witch the side is computed, the formula used is the 
+cross-product is \labelindexref{Equation}{eqn:side-of-line}:
+
+\begin{equation}
+sign = \begin{vmatrix}B.x - A.x & B.y - A.y \\ C.x - A.x & C.y - A.y\end{vmatrix}
+\qquad\parbox{4.0cm}{\footnotesize$\begin{aligned} 
+  sign > 0  & \text{ point on left side of line}
+  \\[-1.0ex] sign = 0  & \text{ point on same line}
+  \\[-1.0ex] sign < 0  & \text{ point on right side of line}
+  \end{aligned}$}
+\label{eqn:side-of-line}
+\end{equation}
+
+In the conversion between GPS and ECEF, an computational error is introduced 
+in the mathematical model,  mostly because the formulas consider the Earth Radius
+of constant size. In a \textit{Line Astern} formation, this error determines
+the agents to slightly move from left to right. Also this error can be seen
+in calculating the distance between two UAVs. The distance computed in 
+ECEF coordinates system using the Euclidean formal varies from the distance 
+computed in GPS space using the Haversine formula with values ranging between
+10 and 30 meters,  for distance between 100 and 200 meters.
