@@ -1,17 +1,119 @@
 \chapter{Implementation details}
 \label{chapter:implementation-details}
-\todo{describe implementation details}
 
 \section{FlightGear}
 \label{sec:fgfs}
-\todo {talk about FlightGear}
+For the Autonomous project we have chosen an open-source, multi-platform
+flight simulator called \textbf{Flight Gear Flight Simulator}. It was first
+released in 1997 under \textit{GNU General Public License} by David Murr. Being
+developed by a mature community in an academic environment,  FGFS\abbrev{FGFS}{Flight
+Gear Flight Simulator} has reached in February 2013 version 2.10. Currently
+it is being used by various universities and companies for FAA flight simulators
+and research projects. Some of the universities that use FGFS are: University of
+Minnesota, Department of Aerospace Engineering at The Pennsylvania State University,
+University of Naples and University of Toulouse along with ATC Flight Simulator
+Company Aerospace Engineering Institute from RWTH Aachen.
+
+
+Being an open-source product, it offers a high degree of freedom the code being
+easy to modify. Because it is written in C++ the code is cross-platform, running
+on various different operating systems (eg: Windows, Linux, MAC OS). For
+obtaining a higher degree of versatility, Flight Gear is able to use multiple
+FDMs\abbrev{FDM}{Flight Dynamics Model}. Independent implementations like
+JSBSim and YASim are built as libraries and integrated with FGFS. For these
+project we have used a remote model called Rascal110 bundled with JSBSim. The
+reason for using the Rascal110 model is that it has similar aerodynamics and
+dimensions as the Hirrus drone, for witch we are building this autopilot.
+
+Another reason that led to the choice of this simulator is the fact that the 
+central components can be configured by a component called \textbf{Property Tree}.
+Each node in the \textit{Property Tree} represent one parameter of one component
+and the interaction between components can be assured by changing the values of
+the parameters. The \textit{Property Tree} can be accessed in multiple ways.
+One of the modes is represented by a web interfaced where the tree can be navigated
+and using submit forms the values can be changed. Another is to specify the
+desired parameters as command line arguments. At startup FGFS also reads an
+external XML\abbrev{XML}{eXtensible  Markup Language} configuration files where
+any property can be set. This allows an external user to change the current
+status of the aircraft by modifying roll, speed, pitch, acceleration or even positions.
+
+To connect to external components, FGFS uses a network communication module
+that uses either TCP or UDP sockets. In combination with the \textit{Property Tree}
+this modules can offer full control for outside sources. The communication module
+requires an XML files that defines the file format. In the XML there are defined
+an \textbf{input} and \textbf{output} formats. The \textit{output} format is 
+usually used to notify the external controller of the aircraft's state, while
+the \textit{input} format is used by the external controller to send commands
+to control the aircraft. The messages have a C-like format and each value can
+be configured to have the needed precision.
+
+For these thesis the modules that were mostly used are the \textbf{Autopilot} and
+\textbf{Route Manager}. The \textit{autopilot} has a simple interface and supports
+commands to specify heading, altitude or speed.For speed and heading changes,
+internally, FGFS implements PID controllers.
+
+For ensuring a global environment for all the UAVs, we have used another component
+called Flight Gear Multi-player Server. FGMS has the role of representing in the
+same environment all the connected UAVs. FGMS acts as a global server where each
+UAV is a client and broadcasts all the positions and flight date to all the instances.
+This feature is necessary for visually observing the UAVs during the flight 
+simulation.
+
+In \labelindexref{Figure}{img:multi-uavs} can be observed from diferent perspectives 
+several UAVs fling in the same environment.
+
+\fig[scale=0.3]{src/img/multi-uavs.png}{img:multi-uavs}{Multiple UAVs in the same
+environment from different perspectives}
+\newpage
+
 
 \section{QGroundControl}
 \label{sec:fgfs}
-\todo{talk about QGroundControl}
 
-\section{Mavlink}
+Another mandatory component for controlling a fleet an UAVs is a ground control
+systems, that would allow th a graphical visualization of the mission and 
+flight parameters. For this thesis the chosen ground control system is QGroundControl.
 
+The base version that was used is v1.0.5. Originally QGC was developed
+for the PIXHawk quad-rotor drone by Lorent Meier at ETH Zurich. QGC offers supports
+for plotting the flight paths on a map, defining waypoints and event remote 
+controlling the drones. It is developed in C++ using Qt, making it a cross-platform, 
+modular architecture. QGC supports radio-copters, fixed-wing drones and even.
+RC cars. For communication with external controllers QGC accepts UDP connections, 
+TCP sockets, USB connections and even radio links.
+
+Being developed for MAVs\abbrev{MAV}{Micro Air Vehicles},  QGC uses
+an open-source protocol called MAVLink. MAVLink is based on a set of predefined
+messages for communication between MAVs.QGC offers various widgets for facilitating
+the use of MAVLink.
+
+MAVLink uses a special message for tracking the integrity of the connected drones
+called a \textbf{heartbeat}. This message is expected to come at regular intervals
+of time. If this message is not received, the drone is considered incoherent
+and manual actions have to be taken. Even though other messages are received from
+the UAVs, without the heartbeat message, QGC sets them in a state of incoherence.
+
+For this thesis the MAVLink protocol was bypassed and I implemented a generic
+protocol based on the messages sent by FGFS. Qt's signal mechanism permitted
+event generation every time a message was received from FGFS. The communication
+is based on two UDP sockets (one for input and one for output) for each UAV. 
+Every time a message is received from FGFS it is parsed according to the XML 
+configuration used at the startup of FGFS and the position, speed, orientation
+and other parameters are set and the MAV's position is rendered on the map.
+
+An useful feature of QGC is the trail path rendered from the previous positions
+of the MAV. The trail can be set to leave a marker at fixed intervals of time
+or at fixed distances from one another.
+
+QGC is used in different universities and research laboratories across the world 
+like: University of Naples, French Aerospace Laboratory ONERA,  University of 
+Applied Science of Hamburg.
+
+In \labelindexref{Figure}{img:qgc}.
+
+\fig[scale=0.3]{src/img/qgc.png}{img:qgc}{QGroundControl, monitoring the flight
+path of three UAVs.}
+\newpage
 \section{MY CODE}
 \label{sec:fgfs}
 \todo{talk about code,  class-diagrams,  describe methods,  data-structures}
