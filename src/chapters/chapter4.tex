@@ -204,9 +204,39 @@ by following the same heading of the leader.
 heading by incrementing or decrementing the heading with an offset computed
 with the values from the configuration files.
 \end {itemize}
-% 
-
 
 \section{Maintaining the formation}
 \label{sec:formation-maintainig}
+The final step in obtaining a coherent formation for flying is maintaining
+the unity of the formation once the synchronization has occurred. After
+the follower has reached the desired position relative to the leader
+he has to stop from steering left or right and maintain this position. This
+is possible by flying with the same true heading as the leader and changing the
+altitude with the same unit as the leader. Compared to a waypoint (positions on
+the map that a drone has to reach), this approach is more versatile
+because it doesn't have to execute turn maneuvers to reach the current waypoint.
+If an drone is not able to reach o waypoint because the aeronautical model
+does not allow high steering angles, the drone is forced to execute a 
+circle back maneuver so that on the next pass it aligns with the waypoint. 
+
+In this paper it is considered that all the drones have the same aeronautical model.
+If the leader is able to execute a turn, the other drones are able to execute
+the same maneuver. This ensures that the formation can be maintained
+more easily while the leader follows the path described by the mission. 
+
+The formation same flying parameters are maintained by the followers as long
+as the distance between them and the leader as is maintained in the configured
+range of accepted distances. If this distance is greater than the accepted ones
+the followers enters in the \textit{Synchronization mode} and moves to the 
+needed position. If the distance is smaller than control is passed to the
+\textit{Collision Avoidance} module that will ensure either that drones
+execute a repel routine on the horizontal plane without changing the altitude
+or that a more evasive maneuver like detach by climb or descend is execute.
+
+Another situation where a follower leaves the \textit{Maintain formation mode} 
+and enters the \textit{Synchronization mode} is when the leader executes
+a turn in the direction of the follower. In this situation the leader could 
+move from the left side of the follower to the right side (or vice-versa), thus
+determining the drone to steer in the same direction but with an offset added
+to the heading so that it moves back to the desired location.
 
