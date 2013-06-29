@@ -23,7 +23,7 @@ FDMs\abbrev{FDM}{Flight Dynamics Model}. Independent implementations like
 JSBSim and YASim are built as libraries and integrated with FGFS. For these
 project we have used a remote model called Rascal110 bundled with JSBSim. The
 reason for using the Rascal110 model is that it has similar aerodynamics and
-dimensions as the Hirrus drone, for witch we are building this autopilot.
+dimensions as the Hirrus drone, for which we are building this autopilot.
 
 Another reason that led to the choice of this simulator is the fact that the 
 central components can be configured by a component called \textbf{Property Tree}.
@@ -120,7 +120,7 @@ The formation flight module was developed using the architecture describe in
 
 The connection between FGFS instances and QGC, the later was modified to establish
 UDP connection. For each monitored FGFS instance,  QGC opens another UDP socket
-on witch it will send data back. For communication with FGFS, QGC uses a total
+on which it will send data back. For communication with FGFS, QGC uses a total
 number of $n+1$ sockets, where n is the number of FGFS instances and the last
 one is the UPD input socket. Also, I have modified the communication used
 by a MAV so that it does not use MAVLink. Instead it uses a generic protocol
@@ -180,7 +180,7 @@ The \textbf{uav_geometry} contains data about the relative position to another d
 it contains the following fields:
 
 \begin{description}
-\item [relative_drone] \hfill \\ the UAV to witch the geometry is relative to
+\item [relative_drone] \hfill \\ the UAV to which the geometry is relative to
 \item [distance] \hfill \\ array of three values containing the height difference
 between the UAVs, the heading multiply factor (used for determining how fast a UAV
 will turn to enter formation), the distance between the UAVs
@@ -232,11 +232,11 @@ position. On the other hand if the UAV is on the left side of the leader and
 the formation specifies that it has to be on the left side, but the distance
 from the leader is to big, a true heading that is greater than the leader is 
 reported, until the distance is in the desired range. To determine the side on
-witch the UAV resides,  from the two known position of the leader 
+which the UAV resides,  from the two known position of the leader 
 the flight direction is calculated and if the point is on the left or right.
 In this calculations the altitude is ignored and considering that $A$ is the 
 leaders previous location and $B$ is the leaders current location and $C$
-is the point for witch the side is computed, the formula used is the 
+is the point for which the side is computed, the formula used is the 
 cross-product is \labelindexref{Equation}{eqn:side-of-line}:
 
 \begin{equation}
