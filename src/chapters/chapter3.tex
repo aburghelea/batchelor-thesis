@@ -62,6 +62,32 @@ This thesis handles the \project module that will be integrated with the other
 modules developed in the Autonomous UAV project to obtain an automated pilot
 that will be used for controlling the Hirrus UAV \cite{hirrus}.
 
+The \textit{UAV State Manager Module} is responsible for maintaining correct
+data about the state of the aircraft (eg: fuel level, evasive maneuvers, equilibrium
+sate). If a state of incoherence is detected by the state manager it will notify
+the adjacent modules and request the necessary modification of the parameters
+so that the aircraft is return to a stable and safe state. The general flight
+path is generated and modified for by the \textit{Navigation Module}. The desired
+mission goals are resolved by this module and a generic flight path is generated.
+This module acts similar to a GPS system that indicates the necessary routes 
+to follow to arrive at a destination. In the situation that the aircraft is 
+unable to follow these indications, the module is responsible to provide
+an alternate indication by reconfiguring the flight path. The 
+rules based \textit{Clips Engine} is responsible for providing the flight 
+suggestions in an event driven style. For example, if the parameters indicate
+a possible collision, the engine generates an event signaling the \textit{
+  Collision Avoidance Module} that evasive maneuvers are needed. The \textit{
+Collision Avoidance Module} indicates the necessary maneuvers to avoid the
+intersection of two drones or a drone with an inanimate object. 
+
+The \textit{Formation Flight Module} computes the necessary heading and altitude
+a drone has to maintain so that it stays in formation. The combined outputs 
+of the \textit{Formation Flight Module} and \textit{Collision Avoidance} module
+can be obtained in two manners. One is implemented using priorities, where the
+output from one module is executed before the output of the other one. The second
+way can be obtained by merging the two outputs in a arithmetical way with different
+percentages for each.
+
 \section{Functionalities}
 \label{sec:functionalities}
 
