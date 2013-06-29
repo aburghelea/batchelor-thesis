@@ -164,7 +164,48 @@ altitudes.
 
 \section{Entering the formation}
 \label{sec:formation-entering}
-\todo{Describe Formation Entering}
+Entering the formation can be studied from two perspectives. If the UAVs
+that need to enter the formation are situated at greater distances, the follower
+must head in the leader direction with greater speed than the leader. If the 
+UAVs are found inside a synchronization area (low radius sphere) they only have to
+assume the correct position in formation. 
+
+This thesis studies the behavior of a synchronization area based algorithm with
+a dedicated leader. For simulating a real swarm the data shared with the other
+UAVs is minimal and is composed of : \textit{latitude, longitude, altitude, speed 
+and true heading}. The designated leader follows it's own mission, while
+the follower have to create a flight path coherent with the leader's mission.
+The leader does not inform the followers at any given time about the mission 
+plan or flight path. Figure \labelindexref{Figure}{img:plane-spheres} describes
+the 4 coordination spheres of an UAV. In the \textit{Emergency Space} zone, 
+the Formation Flight module gives full control to the Collision Avoidance module.
+In the \textit{Personal Space} zone the two modules mentioned before have equal
+priorities generating a merged flight path. The previous two zones are sometimes
+combined in to a single one called \textit{Collision Avoidance Zone} or 
+\textit{Repel Zone}. In \textit{Synchronization zone} the follower drones have
+to move in to the position specified by the formation configuration and.
+
+\fig[scale=0.55]{src/img/plane-spheres.png}{img:plane-spheres}{Aircraft coordination spheres}
+\newpage
+
+For entering the formation, in this thesis is assumed that all the airplanes are
+present in the \textit {Synchronization zone}. Entering the formation is obtained
+by the following steps:
+
+\begin {itemize}
+\item The follower drone is informed by the leaders last two known position and flight
+parameters.
+\item Based on the formation configuration file the follower decides on witch side
+of the leader it should position it's self (left, right, behind).
+\item The current position of the follower is computed relative to the leader.
+\item If the drone is in the desired position, the drones maintains it 
+by following the same heading of the leader.
+\item If the drone has the move to the desired position, the drone adjusts it's
+heading by incrementing or decrementing the heading with an offset computed
+with the values from the configuration files.
+\end {itemize}
+% 
+
 
 \section{Maintaining the formation}
 \label{sec:formation-maintainig}
