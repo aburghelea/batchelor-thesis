@@ -45,7 +45,8 @@ an \textbf{input} and \textbf{output} formats. The \textit{output} format is
 usually used to notify the external controller of the aircraft's state, while
 the \textit{input} format is used by the external controller to send commands
 to control the aircraft. The messages have a C-like format and each value can
-be configured to have the needed precision.
+be configured to have the needed precision. An example of a XML configuration file
+can be seen in \labelindexref{Listing}{lst:qgc.xml}
 
 For these thesis the modules that were mostly used are the \textbf{Autopilot} and
 \textbf{Route Manager}. The \textit{autopilot} has a simple interface and supports
@@ -107,7 +108,8 @@ QGC is used in different universities and research laboratories across the world
 like: University of Naples, French Aerospace Laboratory ONERA,  University of 
 Applied Science of Hamburg.
 
-In \labelindexref{Figure}{img:qgc}.
+In \labelindexref{Figure}{img:qgc} can be seen the flight path of 3 UAVs flying
+  over the Danube in Brăila, Romania.
 
 \fig[scale=0.3]{src/img/qgc.png}{img:qgc}{QGroundControl, monitoring the flight
 path of three UAVs.}
@@ -144,7 +146,8 @@ At startup the module reads a JSON configuration file. The configuration
 file contains the number of drone and the geometry formation. Each UAV has
 a relative altitude to another UAV, a position (left or right) to the possible 
 leader and at what distance it should be from the other UAVs. For extensibility
-reasons the JSON also contains data about the equipment.
+reasons the JSON also contains data about the equipment. An example of a formation
+configuration file can be seen in \labelindexref{Listing}{lst:formation-json}
 
 After reading the JSON file, the data is store in a data structure called 
 \textbf{uav_formation}. The \textit{uav_formation} class contains the following fields
