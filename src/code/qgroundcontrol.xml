@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+ <generic>
+
+  <output>
+   <line_separator>newline</line_separator>
+   <var_separator>tab</var_separator>
+   
+   <chunk>
+    <name>time (sec)</name>
+    <type>float</type>
+    <format>%.4f</format>
+    <node>/sim/time/elapsed-sec</node>
+   </chunk>
+
+   <!-- Position -->
+   <chunk>
+    <name>latitude-deg</name>
+    <type>double</type>
+    <format>%.18f</format>
+    <node>/position/latitude-deg</node>
+   </chunk>
+
+   <chunk>
+    <name>longitude-deg</name>
+    <type>double</type>
+    <format>%.18f</format>
+    <node>/position/longitude-deg</node>
+   </chunk>
+
+   <chunk>
+    <name>altitude (m)</name>
+    <type>double</type>
+    <format>%.5f</format>
+    <node>/position/altitude-ft</node>
+    <factor>0.3048</factor>                  <!-- feet to meter -->
+   </chunk>
+
+   <!-- Orientation -->
+
+   <chunk>
+    <name>roll angle</name>
+    <type>float</type>
+    <format>%.5f</format>
+    <node>/orientation/roll-deg</node>
+    <factor>0.01745329251994329576</factor>  <!-- degrees to radians -->
+   </chunk>
+   
+   <chunk>
+    <name>pitch angle (rad)</name>
+    <type>float</type>
+    <format>%.5f</format>
+    <node>/orientation/pitch-deg</node>
+    <factor>0.01745329251994329576</factor>  <!-- degrees to radians -->
+   </chunk>
+   
+   <chunk>
+    <name>yaw angle</name>
+    <type>float</type>
+    <format>%.5f</format>
+    <node>/orientation/heading-deg</node>
+    <factor>0.01745329251994329576</factor>  <!-- degrees to radians -->
+   </chunk>
+
+   <chunk>
+    <name>roll rate ("p" rad/sec)</name>
+    <type>float</type>
+    <format>%.6f</format>
+    <node>/fdm/jsbsim/velocities/pi-rad_sec</node>
+   </chunk>
+
+   <chunk>
+    <name>pitch rate ("q" rad/sec)</name>
+    <type>float</type>
+    <format>%.6f</format>
+    <node>/fdm/jsbsim/velocities/qi-rad_sec</node>
+   </chunk>
+
+   <chunk>
+    <name>yaw rate ("r" rad/sec)</name>
+    <type>float</type>
+    <format>%.6f</format>
+    <node>/fdm/jsbsim/velocities/ri-rad_sec</node>
+   </chunk>
+
+   <!-- Velocities -->
+   
+   <chunk>
+    <name>Velocity North ("vn" mps)</name>
+    <type>float</type>
+    <format>%.8f</format>
+    <node>/velocities/speed-north-fps</node>
+    <factor>0.3048</factor>                  <!-- fps to mps -->
+   </chunk>
+
+   <chunk>
+    <name>Velocity East ("ve" mps)</name>
+    <type>float</type>
+    <format>%.8f</format>
+    <node>/velocities/speed-east-fps</node>
+    <factor>0.3048</factor>                  <!-- fps to mps -->
+   </chunk>
+
+   <chunk>
+    <name>Velocity Down ("vd" mps)</name>
+    <type>float</type>
+    <format>%.8f</format>
+    <node>/velocities/speed-down-fps</node>
+    <factor>0.3048</factor>                  <!-- fps to mps -->
+   </chunk>
+
+   <chunk>
+     <name>airspeed-mps</name>
+     <type>float</type>
+     <format>%.8f</format>
+     <node>/velocities/airspeed-kt</node>
+     <factor>0.514444444444444</factor>      <!-- knots to mps -->
+   </chunk>
+   
+   <chunk>
+     <name>current-waypoint</name>
+	 <type>int</type>
+     <format>%d</format>
+     <node>/autopilot/route-manager/current-wp</node>
+   </chunk>
+   
+   <chunk>
+   	<name>route-manager-status</name>
+	<type>string</type>
+	<format>%s</format>
+	<node>/autopilot/route-manager/active</node>
+   </chunk>
+   
+   <!-- Hack things - heading values -->
+   
+   <chunk>
+	<name>true heading</name>
+	<type>float</type>
+	<format>%.5f</format>
+	<node>/autopilot/settings/true-heading-deg</node>
+   </chunk>
+   
+   
+   <chunk>
+	<name>altitude heading</name>
+	<type>float</type>
+	<format>%.5f</format>
+	<node>/autopilot/settings/target-altitude-ft</node>
+	<factor>0.3048</factor>
+   </chunk>
+   
+   <chunk>
+	<name>speed heading</name>
+	<type>float</type>
+	<format>%.5f</format>
+	<node>/autopilot/settings/target-speed-kt</node>
+	<factor>0.514444444444444</factor>
+   </chunk>
+   
+  </output>
+
+  <input>
+   <line_separator>newline</line_separator>
+   <var_separator>tab</var_separator>
+
+	<chunk>
+	 <name>target heading</name>
+	 <node>/autopilot/settings/true-heading-deg</node>
+	 <type>double</type>
+	 <format>%.5f</format>
+	</chunk>
+	   
+	<chunk>
+	 <name>target altitude</name>
+	 <node>/autopilot/settings/target-altitude-ft</node>
+	 <type>double</type>
+	 <format>%.5f</format>
+	</chunk>
+	   
+	<chunk>
+	 <name>target speed</name>
+	 <node>/autopilot/settings/target-speed-kt</node>
+	 <type>double</type>
+	 <format>%.5f</format>
+	</chunk>
+	   
+	<chunk>
+	 <name>heading mode</name>
+	 <node>/autopilot/locks/heading</node>
+	 <type>string</type>
+	 <format>%s</format>
+	</chunk>
+	   
+	<chunk>
+	 <name>altitude mode</name>
+	 <node>/autopilot/locks/altitude</node>
+	 <type>string</type>
+	 <format>%s</format>
+	</chunk>
+	   
+	<chunk>
+	 <name>speed mode</name>
+	 <node>/autopilot/locks/speed</node>
+	 <type>string</type>
+	 <format>%s</format>
+	</chunk>
+	
+	<chunk>
+	 <name>route manager input</name>
+	 <node>/autopilot/route-manager/input</node>
+	 <type>string</type>
+	 <format>%s</format>
+	</chunk>
+	
+	<chunk>
+	 <name>route manager active</name>
+	 <node>/autopilot/route-manager/active</node>
+	 <type>string</type>
+	 <format>%s</format>
+	</chunk>
+ </input>
+
+ </generic>
+
+</PropertyList>

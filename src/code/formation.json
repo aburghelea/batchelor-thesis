@@ -1,0 +1,52 @@
+{
+    "name": "V Formation",
+    "has_leader": true,
+    "drones": [
+        {
+            "name": "1",
+            "role": "Camera",
+            "personal_space": 10,
+            "emergency_space": 10,
+            "is_leader": true
+        },
+        {
+            "name": "2",
+            "role": "Infrared",
+            "personal_space": 10,
+            "emergency_space": 5,
+            "is_leader": false
+        },
+        {
+            "name": "3",
+            "role": "Infrared",
+            "personal_space": 10,
+            "emergency_space": 5,
+            "is_leader": false
+        }
+    ],
+    "geometry": [
+        {
+            "drone_name": "2",
+            "relative_to": "1",
+            "distance": [
+                0,
+                4,
+                300
+            ], 
+            "distance_specs" : [
+              "altitude from leader", 
+              "steering factor"
+              "desired distance from leader"
+            ]
+        },
+        {
+            "drone_name": "3",
+            "relative_to": "1",
+            "distance": [
+                 0,
+                -4,
+                300
+            ]
+        }
+    ]
+}
