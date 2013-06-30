@@ -1,5 +1,77 @@
 \chapter{Conclusions and future work}
 \label{chapter:conclusionfw}
+This paper presented a decentralized algorithm that focuses on forming and maintaining
+a fleet of drones. The fleet has a designated leader that follows an own mission
+plan and follower drones. The follower do not a have a specified mission plan 
+and have the task of following the actions of the leader. Being informed
+by the leader's position, speed and heading,  the follower compute their own
+position in the formation and move in the desired direction. 
 
-\todo{describe conclusions and future work  with low priority}
+The \textit{Autonomous UAV Project}, of which this thesis is a part of is divided
+in two components: \textit{Independent Autopilot} and \textit{Management Platform}.
+The formation flight module integrates with the other modules from the \textit{
+Independent Autopilot}, like the collision avoidance module, to implement an 
+independent flight behavior. The proposed solution for formation flight is
+based on two behaviors: \textbf{entering the formation} and \textbf{maintaining
+the formation}.
 
+The leader is coordinated by the programmed mission and is not controlled
+by the formation flight algorithm. In the mission execution the leader will
+engage in collision avoidance and will return to the mission execution when
+the obstacle has been avoided. A follower that is controlled by the formation
+flight algorithm will first try to enter in formation and when it is in the
+necessary spot it will try to maintain it. If the leader moves further away, 
+the follower will switch back to the \textit{entering the formation behavior}.
+
+The main advantage of the proposed approach is the reduced quantity of information
+exchange by each agent (position, speed and heading). This limited information
+makes this approach a feasible real life swarm simulation, where each agent
+reacts to the surrounding environment in a fully reactive manner. The current
+approach is currently limited by the communication modules capacity to communicate
+in real-time. If a follower is not instantly notified by the leader change in 
+direction it will maintain the current heading while the leader will steer to one
+direction. This can lead to a formation loss while the leader steers to one direction
+and thus increasing the distance between the followers and the leader. In this
+case when the follower detects that the distance has increased and it is no longer
+in the accepted distance range, it will enter in the \textit{forming the formation}
+mode and start to steer in the necessary direction to renter the formation.
+
+The current approach is able to successfully maintain either a \textit{Line
+Astern Formation} or a \textit{V Formation} using a fleet of 3 UAVs as long
+as no communication delay is introduced. The algorithm has a time and memory
+complexity of $O(1)$ which makes is a perfect candidate to run on a \textit{Raspberry
+Pi Computer}. The advantage of using this \textit{Raspberry Pi} come from the
+fact that it is a lightweight computer with reduced dimensions,  more specifically
+$85.60$ mm x $56$ mm x $21$ mm weighting only $45$ grams.
+
+From the simulations point of view a possible improvement is represented by running
+the FGFS instances in a dedicated \textit{Open Nebula} cluster  where each instance
+runs on a dedicated machine what will communicate with external modules over 
+a TCP connection. This architecture would provide a simulation improvement 
+reducing the rendering overhead observed in the current simulations. If on 
+a machine only one instance will run the communication with that machine will
+be reduced greatly and the FGFS will be able to render the simulations in 
+real-time.
+
+Another future plan is to test the environment in real life conditions
+using the \textit{Hirrus} drones provided by TNI. For achieving this the 
+flight modules have to be modified in such a manner that it will not receive
+data over a TCP socket, but instead it will use a CAN bus. Another modification
+that has to be implemented is that the communication module has to format the 
+messages received from the flight modules using the \textit{Hirrus} communication
+format.
+
+From an algorithmic point a view there are a couple of improvements that can 
+be made. The first improvement is the integration of PID\abbrev{PID}{Proportional Integral Derivative}
+controller for the heading calculations and also for speed modifications. Another
+improvement would be the implementation of formations following a virtual leader.
+In the current approach the formation is maintained by mimicking the behavior of 
+a real drone. A virtual leader is computed as a center of mass of the formation
+and the mission is defined for the overall formation. The main advantage of a
+virtual leader based formation over a real leader based formation is visible 
+in low altitude flights. In this situation where the fleet flies in an urban 
+area,  a real leader would have to enter in collision avoidance mode often
+and it will first force the follower to follow him and possibly also
+engage collision avoidance. A virtual leader would not avoid any obstacle
+because collisions are impossible. If a virtual leader passes through an obstacle
+the leaders would independently avoid the obstacle and reenter in formation. 
