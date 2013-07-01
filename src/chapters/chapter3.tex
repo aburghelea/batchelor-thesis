@@ -3,7 +3,7 @@
 
 \section{Architecture}
 \label{sec:architecture}
-For the Autonomous UAV platform we have used an architecture based on multiple
+For the Autonomous UAV platform we proposed an architecture based on multiple
 agents that communicate with the \textit{Mission Supervisor} via a CAN.
 The CAN will also be able to route messages
 to other CAN buses. 
@@ -47,14 +47,14 @@ Input-Output module responsible for communicating with the UAV via the CAN bus
 and passing the date to the flight modules.
 \item [Clips Engine] \hfill \\
 Rules based decision engine.
-\item [UAV State Manger] Module responsible for monitoring the state of the UAV.
+\item [UAV State Manager] Module responsible for monitoring the state of the UAV.
 The date that it monitors includes heading, speed,  position etc.
 \item [Navigation] \hfill \\
 Module responsible for deciding the flight path
 \item [Collision Avoidance] \hfill \\
 Reactive module responsible for detecting and avoiding in flight collisions.
 \item [Formation Flight] \hfill \\
-Module responsible for coordinating a fleet of UAVs for maintaining a coherent
+Module responsible for coordinating a fleet of UAVs in order to maintain a coherent
 flight formation.
 \end{description}
 
@@ -66,12 +66,12 @@ The \textit{UAV State Manager Module} is responsible for maintaining correct
 data about the state of the aircraft (eg: fuel level, evasive maneuvers, equilibrium
 sate). If a state of incoherence is detected by the state manager it will notify
 the adjacent modules and request the necessary modification of the parameters
-so that the aircraft is return to a stable and safe state. The general flight
-path is generated and modified for by the \textit{Navigation Module}. The desired
+so that the aircraft is returned to a stable and safe state. The general flight
+path is generated and modified by the \textit{Navigation Module}. The desired
 mission goals are resolved by this module and a generic flight path is generated.
-This module acts similar to a GPS system that indicates the necessary routes 
-to follow to arrive at a destination. In the situation that the aircraft is 
-unable to follow these indications, the module is responsible to provide
+This module is similar to a GPS system that indicates the necessary routes 
+to follow in order to arrive at a destination. In the situation that the aircraft is 
+unable to follow these indications, the module will provide
 an alternate indication by reconfiguring the flight path. The 
 rules based \textit{Clips Engine} is responsible for providing the flight 
 suggestions in an event driven style. For example, if the parameters indicate
@@ -91,7 +91,7 @@ percentages for each.
 \section{Functionalities}
 \label{sec:functionalities}
 
-The platform has the roles of:
+The platform has the following roles:
 \begin{enumerate}
 \item Setting the flight mission objectives.
 \item Selecting the flight area.
@@ -102,14 +102,14 @@ to each aircraft.
 \item After the airplanes are airborne, they will be supervised using the 
 ground control module.
 \item To control the airplanes in an autonomous way, where human intervention is
-needed at least as possible.
+needed as rarely as possible.
 \item Override the \textit{Mission Supervisor} or completely deactivate it, 
 switching to a RC Controlled state.
 \end{enumerate}
 
-For using the platform a will act as described below.
+When using the platform,  the user will perform the actions described below.
 
-Using the custom widget built in QGroundControl will configure the flight objectives, 
+Using the custom widget built in QGroundControl which will configure the flight objectives, 
 selecting the number of aircrafts that will be launched, the type of sensor that
 will be equipped on each drone. Also the user has to create a flight path for 
 each UAV if they are not flying in a tight formation. If the drone will fly in 
@@ -120,7 +120,7 @@ formation, the user will specify the kind of formation that will be used (eg:
 will generate a configuration file that contains a rule based language that
 is close to the natural language and that will be interpreted by a CLIPS engine.
 The configuration file will be uploaded on the UAVs. When the drones are ready
-they are airborne and the autonomous pilot will guide to follow the mission.
+they are airborne and the autonomous pilot module will guide the aircraft to follow the mission.
 From this point their mission can be overseen using QGroundControl where their
 flight path is displayed on the map and where their telemetry is also displayed.
 In case of necessity, the user will send additional commands to the drones, or
