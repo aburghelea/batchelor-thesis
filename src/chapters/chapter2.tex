@@ -1,20 +1,20 @@
 \chapter{Related Work}
 \label{chapter:related-work}
 
-A large number of articles describe the work done to solve the problem of autopilots
-UAV swarms, communication and coordinate systems. In the following paragraphs
-I will describe the main ideas and trade-offs for each described solutions.
+A large number of articles describe the work done to solve the problem of autopilots for
+UAV swarms, as well as communication and coordinate systems. In the following paragraphs 
+we will describe the main ideas and trade-offs for each described solution.
 
 The autopilot problem is well covered in the literature and from real life practice
-it is considered that the best architecture is one that is stratified. Each layer
-is responsible for receiving commands from the superior layer, deciding if the
+it is considered that the best approach is a stratified architecture. Each layer
+is responsible for receiving commands from the one above it, deciding if the
 the command would put the UAV in a state of imbalance, or danger in general, and
 forwarding the command to the layer below. If a possible imbalance state is detected
 the layer either discards the received command and does not send any command to 
 the next layer, or it tweaks the command so that a incoherent state would not
 be induced.
 
-The architecture as proposed by Borges de Sousa et. al \cite{pivant} would have
+The architecture proposed by Borges de Sousa et. al \cite{pivant} would have
 the following layers:
 
 \begin{description}
@@ -39,12 +39,12 @@ The architecture imagined by Borges de Souse can be seen in \labelindexref{Figur
 The advantages provided by this kind of architecture is the separation of
 concerns for each level and the fact that the repair in case of failure can be
 easily detected and fixed. The only draw-back of this approach is the fact
-that in the case of poor implementation it could introduce a latency in communication
+that in the case of poor implementation it could introduce a latency in communication, 
 loosing the possibility of having a real time system.
 
 The autopilot system presented in this thesis is similar to the one described
 above because the Hirrus drone \cite{hirrus} provided by TNI already contains
-a maneuver controller,vehicle supervisor  and an external controller. Thus the
+a maneuver controller, vehicle supervisor and an external controller. Thus the
 system described in these thesis would act as a mission supervisor.
 
 In the terms of UAV teams, Mark D. Richards and his colleagues \cite{cooperative}
@@ -53,7 +53,7 @@ Control Systems}, uses a mesh of interacting high-level behaviors to perform a
 task. The second one, \textbf{Deliberative System}, acts by creating a specific
 flight path for each individual UAV to follow. This second behavior is a 
 generalization of the search path optimization that  Ablavsky proposes in 
-  \cite{path-optimization}. Ablavsky approaches the problem by following the 
+  \cite{path-optimization}. Ablavsky approaches the problem by applying the 
 following steps:
 
 \begin{enumerate}
@@ -71,25 +71,25 @@ For achieving some degree of flexibility, Richards opted not to use an adaptive
 replanning where a central controller computes a specific flight path for each
 agent and and then broadcasts it to the team. The drawbacks of this approach are
 represented by the fact that there would still be a single point of failure and
-the fact that by the time the plan is sent to the UAV it may be already be 
+the fact that by the time the plan is sent to the UAV it may already be 
 deprecated. The approach that was used was a reactive one. The initial path
-is computed and if an hostile condition is generated each UAV has to determine
+is computed and if a hostile condition is encountered each UAV has to determine
 a way to exit that state. By these means Richards managed to sweep an area
 that is divided in sub-zones with different degrees of danger and even a no fly
-zone. The reactive behavior was useful for avoid collision with a friendly unit
-or for escaping a danger zone.
+zone. The reactive behavior was useful to avoid collision with a friendly unit
+or to escape a danger zone.
 
 Although Richards proposal uses a long range unsynchronized flight team, in this
-thesis I used a similar approach for obtaining a synchronized formation.
+thesis we used a similar approach for obtaining a synchronized formation.
 
-Gaudiano and his team research the possibility to explore a zone based on the 
+Gaudiano and his team researched the possibility to explore a zone based on the 
 strategies used by schools of fish, flocks of birds and swarms of insects. 
 The research they published in \cite{bugs} and \cite{c2-paradigm} is based on 
 mimicking the pheromones left behind by the swarms of insects. To be able to 
 replicate the insects behavior, Gaudiano assumed that each UAV is aware of the 
-terrain geometry, is equipped with a sensor that provides a forward code of vision
-able to detect elevation and distance, has a sensor to detect the other UAVs 
-in a given sphere, is positioned using GPS-like coordinates and has a sensor
+terrain geometry through a sensor that provides a forward cone of vision
+able to detect elevation and distance. Each UAV also has a sensor to detect the other UAVs 
+in a given sphere, positioned using GPS-like coordinates and has a sensor
 that mimics the pheromone detection. The later sensor detects, within a rectangular
 region centered on the UAV, the coverage of the current cell. In their simulation
 they have used a global communication system that was able to assure data flow
@@ -120,7 +120,7 @@ their relative efficiency decreases. While on a very large area 10 UAVs would
 cover 6\%, 110 UAVs would cover only 33\%.
 
 In contrast with the approaches form above, Nowak centered his research on 
-creating a self organized swarm. To achieve this he created a three-tired architecture
+creating a self organized swarm. To achieve this he created a three-tiered architecture
 for a SO\abbrev{SO}{Self Organized} System Model that separates the implementation 
 details from the real world agents behavior. This architecture (as presented in
   \cite{so}) can be seen in  \labelindexref{Figure}{img:tireso}.
@@ -173,7 +173,7 @@ is formed from:
 To test the SWARMFARE framework, Nowak opted to paralyze the computation
 using a Master-Slave architecture. The resulting parallel time calculation
 results from the equation:
-f
+
 \begin{equation}
 T_{p} = k (t_{s}+t_{w}m)(p-1) + \frac{n^{ck}}{p}
 \qquad\parbox{4.0cm}{\footnotesize$\begin{aligned} 
@@ -210,10 +210,10 @@ global optimal solution. On the other side the coordinated mode obtains a
 suboptimal solution, but has the advantage that the individual computation 
 time does not increase with the number of agents.
 
-For a close range formation there are necessary both these modes. The coordinated
+For a close range formation both these modes are necessary. The coordinated
 mode is useful for computing the position in the formation for each aircraft 
-and the cooperative mode is useful for a collision avoidance module so that
-the aircrafts do not collide. Similar to Bourgault,  in this thesis is presented
+and the cooperative mode is useful for a collision avoidance module. 
+Similar to Bourgault, the solution presented in this thesis is
 a coordinated mode with a one-step look-ahead.
 
 For obtaining obstacle avoidance it's necessary to have a reactive system combined
@@ -233,17 +233,17 @@ in detecting obstacles appear when the objects are described by parallel lines
 with no visible endpoint or have no texture. Another case when the algorithm could
 fail is when the obstacles have reflective glass surfaces.
 
-The results published in \cite{tracking} can be seen \labelindexref{Figure}{img:tracking}
+The results published in \cite{tracking} can be seen in \labelindexref{Figure}{img:tracking}
 
 \fig[scale=1]{src/img/tracking.png}{img:tracking}{Overhead view of the flight path
 of the UAV as it avoids an obstacle indicated by the black box.}
 \newpage
 
-When using cameras to detect obstacles, the angular velocity of gyroscope often
+When using cameras to detect obstacles, the angular velocity of the gyroscope often
 has a large amount of noise, mostly because of the yaw angle or wind. Thus
 the angular velocity has to be estimated using another type of on-board sensor. 
 
-He approaches this problem by following the following steps \cite{vision-based}:
+\cite{vision-based} approaches this problem by applying the following steps:
 \begin{enumerate}
 \item Classify the image blocks in structural and non-structural blocks
 \item Find multiple "best" motion vectors instead of a single one and chose the
@@ -297,7 +297,7 @@ The formation flight module implemented for this thesis will integrate with
 a module of collision avoidance based on ORCA\abbrev{ORCA}{Optical Recognition
 Collision Avoidance}.
 
-Millington proposes a set of algorithms for implemented moving in \cite{ai-games}.
+Millington proposes a set of algorithms for movement in \cite{ai-games}.
 In his book, he divides these kind of algorithms based on variable of speed and
 acceleration. The categories are:
 
@@ -310,7 +310,7 @@ acceleration. The categories are:
   that are meant to change the velocity of the agent.
 \end{description}
 
-If the worked environment is a 2D model, the output from this algorithms would
+If the environment is a 2D space, the output from this algorithms would
   be represented by one (or both) of the two following values:
 \begin{inparaenum}[\itshape a\upshape)]
 \item clockwise angle in radians from the positive z-axis (the vertical axis 
@@ -357,7 +357,7 @@ altered by a small amount using a binomial random function ( computes values bet
 -1 and 1 with a higher probability for 0.
 \end{description}
 
-For these thesis a \textbf{Wandering behavior} would not be useful, but the 
+For this thesis a \textbf{Wandering behavior} would not be useful, but the 
 \textbf{Seek behavior} is used for obtaining a \textit{follow the leader} movement.
 
 Millington also proposes a set of steering behavior based on outputting accelerations:
