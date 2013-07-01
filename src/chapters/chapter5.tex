@@ -39,9 +39,9 @@ status of the aircraft by modifying roll, speed, pitch, acceleration or even pos
 
 To connect to external components, FGFS uses a network communication module
 that uses either TCP or UDP sockets. In combination with the \textit{Property Tree}
-this modules can offer full control for outside sources. The communication module
-requires an XML files that defines the file format. In the XML there are defined
-an \textbf{input} and \textbf{output} formats. The \textit{output} format is 
+this module can offer full control for outside sources. The communication module
+requires an XML file that defines the message format. In the XML file we can find
+the \textbf{input} and \textbf{output} formats. The \textit{output} format is 
 usually used to notify the external controller of the aircraft's state, while
 the \textit{input} format is used by the external controller to send commands
 to control the aircraft. The messages have a C-like format and each value can
@@ -60,7 +60,7 @@ UAV is a client and broadcasts all the positions and flight date to all the inst
 This feature is necessary for visually observing the UAVs during the flight 
 simulation.
 
-In \labelindexref{Figure}{img:multi-uavs} can be observed from diferent perspectives 
+In \labelindexref{Figure}{img:multi-uavs} can be observed from different perspectives 
 several UAVs flying in the same environment.
 
 \fig[scale=0.3]{src/img/multi-uavs.png}{img:multi-uavs}{Multiple UAVs in the same
@@ -70,7 +70,7 @@ environment from different perspectives}
 \label{sec:qgc}
 
 Another mandatory component for controlling a fleet an UAVs is a ground control
-systems, that would allow th a graphical visualization of the mission and 
+system, that would allow a graphical visualization of the mission and 
 flight parameters. For this thesis the chosen ground control system is QGroundControl.
 
 The base version that was used is v1.0.5. Originally QGC was developed
@@ -83,7 +83,7 @@ TCP sockets, USB connections and even radio links.
 
 Being developed for MAVs\abbrev{MAV}{Micro Air Vehicles},  QGC uses
 an open-source protocol called MAVLink. MAVLink is based on a set of predefined
-messages for communication between MAVs.QGC offers various widgets for facilitating
+messages for communication between MAVs. QGC offers various widgets for facilitating
 the use of MAVLink.
 
 MAVLink uses a special message for tracking the integrity of the connected drones
@@ -92,7 +92,7 @@ of time. If this message is not received, the drone is considered incoherent
 and manual actions have to be taken. Even though other messages are received from
 the UAVs, without the heartbeat message, QGC sets them in a state of incoherence.
 
-For this thesis the MAVLink protocol was bypassed and I implemented a generic
+For this thesis the MAVLink protocol was bypassed and we implemented a generic
 protocol based on the messages sent by FGFS. Qt's signal mechanism permitted
 event generation every time a message was received from FGFS. The communication
 is based on two UDP sockets (one for input and one for output) for each UAV. 
@@ -109,7 +109,7 @@ like: University of Naples, French Aerospace Laboratory ONERA,  University of
 Applied Science of Hamburg.
 
 In \labelindexref{Figure}{img:qgc} can be seen the flight path of 3 UAVs flying
-  over the Danube in Brăila, Romania.
+  over the Danube near Brăila, Romania.
 
 \fig[scale=0.3]{src/img/qgc.png}{img:qgc}{QGroundControl, monitoring the flight
 path of three UAVs.}
@@ -252,11 +252,11 @@ sign = \begin{vmatrix}B.x - A.x & B.y - A.y \\ C.x - A.x & C.y - A.y\end{vmatrix
 \label{eqn:side-of-line}
 \end{equation}
 
-In the conversion between GPS and ECEF, an computational error is introduced 
+In the conversion between GPS and ECEF, a computational error is introduced 
 in the mathematical model,  mostly because the formulas consider the Earth Radius
 of constant size. In a \textit{Line Astern} formation, this error determines
 the agents to slightly move from left to right. Also this error can be seen
 in calculating the distance between two UAVs. The distance computed in 
 ECEF coordinates system using the Euclidean formal varies from the distance 
 computed in GPS space using the Haversine formula with values ranging between
-10 and 30 meters,  for distance between 100 and 200 meters.
+10 and 30 meters,  for distances between 100 and 200 meters.
