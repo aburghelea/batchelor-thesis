@@ -28,9 +28,9 @@ zero height shape is commonly called \textbf{sea level}.
 Commonly the position of the aircraft is usually done by starting with 
 two angles called latitude and longitude. These two angles define a point
 on the ellipsoid that fits the globe. Thus it is mandatory to know with which
-ellipsoid we are working for having any degree of certainty. On the globe
+ellipsoid we are working in order to have any degree of certainty. On the globe
 the North-South line are known as meridians,  and East-West lines are called 
-parallels. To accurately position an aircraft in air a third dimension is needed.
+parallels. To accurately position an aircraft in the air a third dimension is needed.
 Usually the third dimension used is altitude that is measured from \textit{sea level}.
 Having a 3D Cartesian System with the z-axis oriented towards the North Pole and
 the x-axis and y-axis point towards the Equator, the \textbf{Zero on longitude}
@@ -68,7 +68,7 @@ set so that a right handed system is created.
 \label{sub-sec:lla2ecef}
 Conversion between an Ellipsoid System and a Cartesian System is possible 
 as long as the ellipsoid parameters are known. Modern GPS systems use 
-the WGS84 ellipsoid.Coincidently the ellipsoid has the same center as the ECEF
+the WGS84 ellipsoid. Coincidently the ellipsoid has the same center as the ECEF
 system. The ellipsoid parameters fro WGS84 are \cite{datum}:
 
 
@@ -129,7 +129,7 @@ $
 \\ \varphi = \arctan \frac{Z + e^{'2}b\sin^{3} \phi}{p(-e^{2}a\cos^3 \phi)}
 \\ h = \frac{p}{\cos \varphi} - N
 \\ p = \sqrt{X^{2} + Y^{2}}
-\\ phi = \arctan \frac{Za}{pb}
+\\ \phi = \arctan \frac{Za}{pb}
 \end{cases}
 $
 \end{description}
@@ -139,7 +139,7 @@ coordinates to GPS coordinates.
 
 \section{Formation types}
 \label{sec::formation-types}
-Across the world human pilots are able to fly in formations that varying in both
+Across the world human pilots are able to fly in formations that vary in both
 shape and difficulty. The most used formations are usually formed by 3 
 or 4 airplanes. 
 
@@ -159,12 +159,12 @@ Finger Right, Finger Left,  Echelon Right, Echelon Left} and can be seen in
 \fig[scale=0.25]{src/img/4form3.png}{img:4form3}{d) Finger Left and  e) Echelon Right}
 \newpage
 
-In this thesis I studied the {V Formation} and \textit{Line Astern} with different
+In this thesis we studied the {V Formation} and \textit{Line Astern}, with different
 altitudes.
 
 \section{Entering the formation}
 \label{sec:formation-entering}
-Entering the formation can be studied from two perspectives. If the UAVs
+The process of the creation of the formation can be studied from two perspectives. If the UAVs
 that need to enter the formation are situated at greater distances, the follower
 must head in the leader direction with greater speed than the leader. If the 
 UAVs are found inside a synchronization area (low radius sphere) they only have to
@@ -174,7 +174,7 @@ This thesis studies the behavior of a synchronization area based algorithm with
 a dedicated leader. For simulating a real swarm the data shared with the other
 UAVs is minimal and is composed of : \textit{latitude, longitude, altitude, speed 
 and true heading}. The designated leader follows it's own mission, while
-the follower have to create a flight path coherent with the leader's mission.
+the followers have to create a flight path coherent with the leader's mission.
 The leader does not inform the followers at any given time about the mission 
 plan or flight path. Figure \labelindexref{Figure}{img:plane-spheres} describes
 the 4 coordination spheres of an UAV. In the \textit{Emergency Space} zone, 
@@ -219,19 +219,19 @@ If an drone is not able to reach o waypoint because the aeronautical model
 does not allow high steering angles, the drone is forced to execute a 
 circle back maneuver so that on the next pass it aligns with the waypoint. 
 
-In this paper it is considered that all the drones have the same aeronautical model.
+In this thesis we consider that all the drones have the same aeronautical model.
 If the leader is able to execute a turn, the other drones are able to execute
 the same maneuver. This ensures that the formation can be maintained
 more easily while the leader follows the path described by the mission. 
 
-The formation same flying parameters are maintained by the followers as long
+The same flight parameters are maintained by the followers as long
 as the distance between them and the leader as is maintained in the configured
 range of accepted distances. If this distance is greater than the accepted ones
-the followers enters in the \textit{Synchronization mode} and moves to the 
-needed position. If the distance is smaller than control is passed to the
+the followers enter in the \textit{Synchronization mode} and move to the 
+needed position. If the distance is smaller then control is passed to the
 \textit{Collision Avoidance} module that will ensure either that drones
 execute a repel routine on the horizontal plane without changing the altitude
-or that a more evasive maneuver like detach by climb or descend is execute.
+or that a more evasive maneuver like detach by climbing or descending is executed.
 
 Another situation where a follower leaves the \textit{Maintain formation mode} 
 and enters the \textit{Synchronization mode} is when the leader executes
