@@ -47,7 +47,14 @@
   \end{column}
   \end{columns}
 }
-
+\newcommand{\todo}[1]{
+  \colorbox{yellow}{
+    \begin{minipage}{10.5cm}
+    \textbf{TODO:}\\
+#1
+    \end{minipage}
+    }
+  }
 \setbeamertemplate{title page}[SCS theme]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -61,6 +68,7 @@
     \insertframetitle
   \end{flushright}
 }
+
 
 \mode<all>
 
