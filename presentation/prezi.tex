@@ -1,0 +1,52 @@
+% vim: set tw=80 aw sw=2 sts=2 noet:
+\documentclass{beamer}
+
+%\includeonlyframes{c} % speeding up compilation speed during debug
+
+
+\usepackage[utf8x]{inputenc}            % diacritice
+\usepackage[english]{babel}
+\usepackage{color}                      % highlight
+\usepackage{alltt}                      % highlight}        % \url{http://...} | \href{http://...}{Nume Link}
+
+% Pentru a include cod decomentati urmatoarele 3 linii
+%\usepackage{color}			 % highlight
+%\usepackage{alltt}			 % highlight
+%\usepackage{code/highlight}	 % highlight
+
+\mode<presentation>
+%\usetheme{UEA}
+%\usepackage{imperial-beamer}
+\usetheme{SCS}
+
+% Pentru a afisa (cont.) la slide-uri prea lungi split-uite pe mai multe pag
+\setbeamertemplate{frametitle continuation}[from second]
+% Pentru a modifica modul de afisare al numerelor de slide
+\setbeamertemplate{footline}[frame number]
+
+\title[]{Formation Flight for Unmanned Aerial Vehicles}
+\subtitle{Bachelor Thesis: July 13\textsuperscript{th} 2013}
+\institute[CS]{Prof. Adina Magda Florea \\ Ing. Mihai Trăscău \\ Ș.l. Cătălin Leordeanu}
+\author[A]{Alexandru George Burghelea \\ (\textit{aburghelea@rosedu.org})}
+
+\begin{document}
+
+{
+  % Schimbam fundalul aici pentru a avea slide-ul cu logo-urile
+  % Nu știu momentan cum se face asta în template.
+  \usebackgroundtemplate{\includegraphics[width=\paperwidth]{title}}
+  \frame{\titlepage}
+}
+
+\begin{frame}{Index}
+  \begin{itemize}
+    \item Intro
+    \item First Chapter
+    \item Second Chapter
+    \item Third Chapter
+    \item Results
+    \item Questions
+  \end{itemize}
+\end{frame}
+
+\end{document}
