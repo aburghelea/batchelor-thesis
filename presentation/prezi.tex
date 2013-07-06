@@ -44,6 +44,7 @@
     \item Autonomous UAV
     \item Hirrus
     \item Objectives
+    \item Autopilot Architecture
     \item Formation Flight
     \item Types of Formation
     \item Evaluation and Results
@@ -52,40 +53,185 @@
 \end{enumerate}
 \end{frame}
 
+% 1 Slide titlu
+% 1 Slide cuprins
+% - Domeniu (2-3 slide-uri) ce inseamna uav, ce ar tb sa faca o flota de uav- hirrus 1 slide
+% - autonomus uav (colaborare cu TNI)
+% obiective, poza arhitectura
+% - Zbor in formatie (motivatie) de ce + scenarii
+% - descriu formatia
+% - care e sistemul de coordonate (putine detalii)
+% - formatiile tratate
+% 2 slide-uri rezumat rezultate
+
 \begin{frame}{Domain}
-\todo{write}
+\textbf{UAV} (\textit{Unmanned Aerial Vehicle})
+\begin{tabular}{l l}
+\begin{minipage}{0.5\textwidth}
+\begin{itemize}
+\item no pilot \textbf{on board}
+\item remote controlled or
+\item completely autonomous
+\item envisioned by N. Tesla in 1915
+\item used in military and civil missions
+\item rotor based or fixed-winged
+\end{itemize}
+\end{minipage}
+&
+\begin{minipage}{0.5\textwidth}
+\begin{figure}[p]
+\includegraphics[width=2in]{img/uav1.jpg}
+\caption{http://http://aerosdb.com/uav-drone/}
+\end{figure}
+\end{minipage}
+\end{tabular}
 \end{frame}
 
 \begin{frame}{Autonomous UAV}
-\todo{write}
+About:
+\begin{itemize}
+\item in collaboration with \textit{Teamnet International S.A.}
+\item aims to build a management platform for a fleet of UAVs
+\end{itemize}
+Scope:
+\begin{itemize}
+\item development of autonomous flight modules for the Hirrus drone
+\item development of a software platform for programming, tracking and remote
+controlling of the drones
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Hirrus}
-\todo{write}
+\begin{center}
+\begin{figure}[p]
+\includegraphics[width=3.5in]{img/hirrus.jpg}
+\caption{http://aft.ro/bro.pdf}
+\end{figure}
+\end{center}
 \end{frame}
 
-\begin{frame}{Objectives}
-\todo{write}
+\begin{frame}{Hirrus}
+
+\begin{description}
+\item [Destination] law enforcement, reconnaissance, search and rescue, cartography
+\item [Dimensions] Wingspan 2.35 m / Length 1.1 m / Weight 7 kg
+\item [Speed] Max 130 km/h, Cruise 90 km/h
+\item [Payload] 0.7 kg
+\item [Propulsion] Electric
+\item [Endurance] 180 m
+\item [Range] 15 km
+\end{description}
+
+\end{frame}
+
+\begin{frame}{Platform Objectives}
+\begin{itemize}
+\item Ground Control System based on QGroundControl
+\item Mission Monitor System
+\item Remote Control Module for mission override and manual control
+\item Autopilot for Hirrus with \textit{Collision Avoidance} and \textit{Formation
+  Flight} modules
+\item Artificial Intelligence Module for mission execution. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Platform Simulation Architecture}
+\begin{center}
+\includegraphics[width=3.5in]{img/platform-architecture.png}
+\end{center}
+\end{frame}
+\begin{frame}{Autopilot Architecture}
+\begin{center}
+\includegraphics[width=3in]{img/rpi-architecture.png}
+\end{center}
+\end{frame}
+
+\begin{frame}{Thesis Objectives}
+\begin{itemize}
+\item close range formation flight module
+\item decentralized communication
+\item reactive agents
+\item inspired by real life animal swarms
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Formation Flight}
-\todo{write}
+\begin{itemize}
+\item 3 or more UAVs flying in formation
+\item simulated using Flight Gear Flight Server
+\item close range
+\item follow the leader algorithm
+\item GPS and ECEF coordinates based on WSG84 ellipsoid
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Types of Formation}
-\todo{write}
+\begin{center}
+\includegraphics[width=1.7in]{img/4form.png}
+\end{center}
+\end{frame}
+
+\begin{frame}{Tested Formations}
+
+\begin{tabular}{l l}
+\begin{minipage}{0.5\textwidth}
+3 UAVs Formations
+\begin{itemize}
+\item{Line Astern}
+\item{V Formation}
+\end{itemize}\end{minipage}
+&
+\begin{minipage}{0.5\textwidth}
+\includegraphics[width=2in]{img/line2.png}
+\newline
+\includegraphics[width=2in]{img/vqgc.png}
+\end{minipage}
+\end{tabular}
 \end{frame}
 
 \begin{frame}{Evaluation and Results}
-\todo{write}
+\begin{itemize}
+\item tested with dedicated leader
+\item leader with it's own mission
+\item other UAVs have a \textit{follow the leader}
+\item 9\% to 25\% of time spend for maintaining the formation
+\item 60\% to 70\% of time spend for entering the formation
+\item 15\% to 20\% of time relieving control for collision avoidance
+\end{itemize}
 \end{frame}
 
+\begin{frame}{Evaluation and Results}
+\begin{itemize}
+\item communication delay can decrease the time spent in formation maintaining
+\item communication delay can induce formation detachment
+\item 300 feet ( $>$ 100 m) distance between UAVs
+\item for tighter result another coordinate system is needed
+\item computational errors are induced by the ellipsoid model while converting coordinates
 
+\end{itemize}
+\end{frame}
 \begin{frame}{Future Work}
-\todo{write}
+\begin{itemize}
+\item formations based on a virtual leader (geometrical center of formation)
+\item simulating with Flight Gear instances running on dedicated machines
+\item communication between AI modules and Hirrus via CAN bus
+\item PID controllers for speed and steering
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Questions}
-\todo{write} 
+Keywords:
+\begin{itemize}
+\item UAV
+\item Decentralized
+\item Reactive
+\item Flight Gear
+\item Hirrus
+\item QGroundControl
+\item Formations
+\item Communication
+\item Swarm
+\item Close Range Formation
+\end{itemize}
 \end{frame}
 \end{document}
