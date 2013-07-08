@@ -23,6 +23,7 @@
 \setbeamertemplate{frametitle continuation}[from second]
 % Pentru a modifica modul de afisare al numerelor de slide
 \setbeamertemplate{footline}[frame number]
+\setbeamertemplate{caption}[numbered]
 
 \title[]{Formation Flight for Unmanned Aerial Vehicles}
 \subtitle{Bachelor Thesis: July 10\textsuperscript{th},  2013}
@@ -66,7 +67,7 @@
 % - formatiile tratate
 % 2 slide-uri rezumat rezultate
 
-\begin{frame}{Domain}
+\begin{frame}{Unmanned Aerial Vehicle}
 \textbf{UAV} (\textit{Unmanned Aerial Vehicle})
 \begin{tabular}{l l}
 \begin{minipage}{0.5\textwidth}
@@ -98,7 +99,7 @@ About:
 \end{itemize}
 Objectives:
 \begin{itemize}
-\item development of an autonomous flight software agent embedded on Raspberry
+\item development of an autonomous flight software agent embedded on Raspberry PI
 for Hirrus
 \item development of a software platform for programming, monitoring and autonomous mission deployment for UAVs
 \end{itemize}
@@ -136,14 +137,40 @@ for Hirrus
 
 \end{frame}
 
+\begin{frame}{Used Technologies}
+\begin{tabular}{l l}
+\begin{minipage}{0.5\textwidth}
+
+\begin{figure}
+\begin{itemize}
+\item simulated using Rascall Drone
+\end{itemize}
+\includegraphics[width=1in]{img/rpi.png}
+\caption{Raspberry PI}
+\end{figure}
+\end{minipage}
+&
+\begin{minipage}{0.5\textwidth}
+\begin{figure}
+\includegraphics[width=1in]{img/fglogo.png}
+\caption{Flight Gear Flight Simulator}
+\includegraphics[width=1.5in]{img/qgclogo.png}
+\caption{QGroundControl}
+\end{figure}
+\end{minipage}
+\end{tabular}
+\end{frame}
+
 \begin{frame}{Platform Simulation Architecture}
+
 \begin{center}
 \begin{figure}[p]
-\includegraphics[width=3.5in]{img/platform-architecture.png}
+\includegraphics[width=\textwidth]{img/platform-architecture.png}
 \caption{Platform Architecture}
 \end{figure}
 \end{center}
 \end{frame}
+
 \begin{frame}{Embedded Software Agent Architecture}
 \begin{center}
 \begin{figure}[p]
@@ -158,23 +185,23 @@ for Hirrus
 \item close range formation flight module
 \item using decentralized communication
 \item multi agent system with reactive agents inspired by swarm structures and behavior models
+\item 3 or more UAVs flying in formation
+\item drones flying at close range
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Formation Flight}
-\begin{itemize}
-\item 3 or more UAVs flying in formation
-\item simulated using Flight Gear Flight Simulator
-\item drones flying at close range
-\item follow the leader behavior
-\item GPS and ECEF coordinates based on WSG84 ellipsoid
-\end{itemize}
-\end{frame}
+% \begin{frame}{Formation Flight}
+% \begin{itemize}
+% \item simulated using Flight Gear Flight Simulator
+% \item follow the leader behavior
+% \item GPS and ECEF coordinates based on WSG84 ellipsoid
+% \end{itemize}
+% \end{frame}
 
 \begin{frame}{Formation Types}
 \begin{center}
 \begin{figure}[p]
-\includegraphics[width=1.5in]{img/4form.png}
+\includegraphics[width=3.5in]{img/4form.png}
 \caption {Formation Types}
 \end{figure}
 \end{center}
@@ -203,6 +230,18 @@ for Hirrus
 % \end{tabular}
 \end{frame}
 
+
+
+\begin{frame}{Implementation details}
+\begin{itemize}
+\item follow the leader behavior
+\item GPS and ECEF coordinates based on WSG84 ellipsoid
+\item \textit{variable matching behavior} for formation maintaining
+\item \textit{follow behavior} for entering formation
+\item C++ with Boost library code base
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Evaluation and Results}
 \begin{itemize}
 \item tested with dedicated leader
@@ -211,14 +250,18 @@ for Hirrus
 \item 9\% to 25\% of time spend for maintaining the formation
 \item 60\% to 70\% of time spend for entering the formation
 \item 15\% to 20\% of time relieving control for collision avoidance
+% \item communication delay increases probability of breaking formation and increases efforts for formation maintaining
+% \item 300 feet ( $<100$ m) distance between UAVs
+% \item for closer formations another coordinate system is needed
+% \item computational errors are induced by the ellipsoid model while converting coordinates
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Evaluation and Results}
 \begin{itemize}
 \item communication delay increases probability of breaking formation and increases efforts for formation maintaining
-\item 300 feet ( $>$ 100 m) distance between UAVs
-\item for closer formations another coordinate system is needed
+\item 300 feet ( $<100$ m) distance between UAVs
+\item for closer formations a more robust coordinate system is needed
 \item computational errors are induced by the ellipsoid model while converting coordinates
 \end{itemize}
 \end{frame}
@@ -233,6 +276,13 @@ for Hirrus
 \end{frame}
 
 \begin{frame}{Conclusions and Future Work}
+Conclusions:
+\begin{itemize}
+\item \textit{Line Astern} and \textit{V Formation}
+\item reactive software agent for formation flight
+\item decentralized communication
+\end{itemize}
+Future Work:
 \begin{itemize}
 \item formations based on a virtual leader (geometrical center of formation)
 \item simulating with Flight Gear instances running on dedicated machines
