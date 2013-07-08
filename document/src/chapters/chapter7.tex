@@ -1,79 +1,163 @@
-\chapter{Conclusions and future work}
-\label{chapter:conclusionfw}
-This thesis presented a decentralized algorithm that focuses on forming and maintaining
-a fleet of drones. The fleet has a designated leader that follows its own mission
-plan and follower drones. The followers do not a have a specified mission plan 
-and have the task of following the actions of the leader. Being informed
-by the leader's position, speed and heading,  the followers compute their own
-position in the formation and move in the desired direction. 
+\chapter{Use cases}
+\label{chapter:use cases}
+\section{Possible missions}
+\subsection{Search and Rescue}
 
-The \textit{Autonomous UAV Project}, of which this thesis is a part of is divided
-in two components: \textit{Independent Autopilot} and \textit{Management Platform}.
-The formation flight module integrates with the other modules from the \textit{
-Independent Autopilot}, like the collision avoidance module, to implement an 
-independent flight behavior. The proposed solution for formation flight is
-based on two behaviors: \textbf{entering the formation} and \textbf{maintaining
-the formation}.
+\textbf{Scenario} \newline
+A group of tourist are stuck on a snowy side of a mountain where human intervention
+is difficult and possibly deadly.
+\textbf{Solution} \newline
+A 3 drone fleet is dispatched to search for survivors. Each drone is equipped with a different
+type of sensor, an infrared camera, a thermal camera and a video camera. Depending
+on geography and weather conditions, none of the specified sensors would be able
+to guarantee the success of the mission while the fleet has a higher rate of success.
+In this situation a \textit{Line Astern Formation} and depending on the sensors
+different altitudes may be necessary. For accomplishing the mission the leader
+would have programed a flight route and the followers would be guided by it's
+actions. If one of the sensors detects a potential survivor the data location
+is send to the control centered where a human agent would take into account
+the information received from all the sensors and mark the zone for human 
+intervention.
 
-The leader is coordinated by the programmed mission and is not controlled
-by the formation flight algorithm. In the mission execution the leader will
-engage in collision avoidance and will return to the mission execution when
-the obstacle has been avoided. A follower that is controlled by the formation
-flight algorithm will first try to enter in formation and when it is in the
-necessary spot it will try to maintain it. If the leader moves further away, 
-the follower will switch back to the \textit{entering the formation behavior}.
+\subsection{Mapping}
+\textbf{Scenario} \newline
+An area needs to be mapped and divided into sub-zones for agricultural purposes.
+\textbf{Solution} \newline
+The zone may have a difficult geography and photographies from different
+perspectives would be needed. A fleet of 3 drones with the same type of camera
+flying in a \textit{V Formation} would provide sufficient data for a detailed 
+analysis to be conducted. The leader would have either a spiral flight path 
+or a rectangular flight path to follow. After the entire zone is swept, the data
+received from the cameras can be combined to obtain an accurate description
+of the interest area.
 
-The main advantage of the proposed approach is the reduced quantity of information
-exchange by each agent (position, speed and heading). This limited information
-makes this approach a feasible real life swarm simulation, where each agent
-reacts to the surrounding environment in a fully reactive manner. The current
-approach is currently limited by the communication modules capacity to communicate
-in real-time. If a follower is not instantly notified by the leader change in 
-direction it will maintain the current heading while the leader will steer to one
-direction. This can lead to a formation loss while the leader steers to one direction
-and thus increasing the distance between the followers and the leader. In this
-case when the follower detects that the distance has increased and it is no longer
-in the accepted distance range, it will enter in the \textit{forming the formation}
-mode and start to steer in the necessary direction to renter the formation.
+\subsection{Surveillance}
+\textbf{Scenario} \newline
+An traffic accident site has to be supervised and video data has to be live
+streamed to a central base.
+\textbf{Solution}
+An accident site is usually contained to a small zone, being the perfect
+candidate for a circular flight path. A situation when an object is on fire could
+generate problems for a video camera is ideal for a fleet of drones with 
+both video and infrared sensors. In this way different information can be 
+analyzed and better decisions can be made for resolving the situation.
 
-The current approach is able to successfully maintain either a \textit{Line
-Astern Formation} or a \textit{V Formation} using a fleet of 3 UAVs as long
-as no communication delay is introduced. The algorithm has a time and memory
-complexity of $O(1)$ which makes is a perfect candidate to run on a \textit{Raspberry
-Pi Computer}. The advantage of using this \textit{Raspberry Pi} come from the
-fact that it is a lightweight computer with reduced dimensions,  more specifically
-$85.60$ mm x $56$ mm x $21$ mm weighting only $45$ grams. Adding new formations
-can be easily done by adding new drones and geometries in the formation file
-that can be seen in \labelindexref{Listing}{lst:formation-json}.
+\section{Evaluation and Results}
+The approach proposed in this thesis was tested using the architecture described in
+\labelindexref{Chapter}{chapter:uav-management-framework}. Each UAV was simulated
+using a dedicated FGFS instance connected to an FGMS instance. The centralized
+data was collect for display using QGC and for manipulation the CAN Simulator
+developed for the Autonomous UAV project.
 
-From the simulations point of view a possible improvement is represented by running
-the FGFS instances in a dedicated \textit{Open Nebula} cluster  where each instance
-runs on a dedicated machine what will communicate with external modules over 
-a TCP connection. This architecture would provide a simulation improvement 
-reducing the rendering overhead observed in the current simulations. If on 
-a machine only one instance will run the communication with that machine will
-be reduced greatly and the FGFS will be able to render the simulations in 
-real-time.
+The leader had it's own defined path where his heading was changed to steer in
+a predefined direction. The simulations included tests were the leader
+was flying in a straight line or where it changed it's direction by up to 
+$90^{\circ}$. The test had the role to observe the drones ability to follow
+the leader,  the stability of the formation and also the percentage of time
+that each UAV spent in the \textit{Synchronization Mode} or \textit{Formation Maintaining
+  Mode}
+  
 
-Another future plan is to test the environment in real life conditions
-using the \textit{Hirrus} drones provided by TNI. To achieve this the 
-flight modules have to be modified in such a manner that it will not receive
-data over a TCP socket, but instead it will use a CAN bus. Another modification
-that has to be implemented is that the communication module has to format the 
-messages received from the flight modules using the \textit{Hirrus} communication
-format.
+The Line astern formation was tested using 3 drones with two scenarios. In 
+the first scenario the followers were supposed to fly at the same altitude
+as the leader. In the second scenario the airplanes had different altitude offsets
+ranging between -40 and 40 feet. Another test scenario that was tested was 
+a V Formation.
 
-From an algorithmic point a view there are a couple of improvements that can 
-be made. The first improvement is the integration of PID\abbrev{PID}{Proportional Integral Derivative}
-controller for the heading calculations and also for speed modifications. Another
-improvement would be the implementation of formations following a virtual leader.
-In the current approach the formation is maintained by mimicking the behavior of 
-a real drone. A virtual leader is computed as a center of mass of the formation
-and the mission is defined for the overall formation. The main advantage of a
-virtual leader based formation over a real leader based formation is visible 
-in low altitude flights. In this situation where the fleet flies in an urban 
-area,  a real leader would have to enter in collision avoidance mode often
-and it will first force the follower to follow him and possibly also
-engage collision avoidance. A virtual leader would not avoid any obstacle
-because collisions are impossible. If a virtual leader passes through an obstacle
-the followers would independently avoid the obstacle and reenter in formation. 
+During the simulations it has been observed that a delay in communication 
+can lead to a formation loss that sets the drones in the \textit{Synchronization Mode}.
+The effects in the communication delay can be seen in \labelindexref{Figure}{img:delay-1}
+and \labelindexref{Figure}{img:delay-2}.
+
+\fig[scale=0.5]{src/img/delay-1.png}{img:delay-1}{Delay influence part. I .}
+
+\fig[scale=0.5]{src/img/delay-2.png}{img:delay-2}{Delay influence part. II .}
+\newpage
+In \labelindexref{Figure}{img:delay-1} the effects of the communication delay
+is mild and it can be observed at crossbars A and D. At cross bar it can
+be seen that the green UAV receives data about the leader that correspond to 
+about 3 seconds back in time. The computation error induces a heading that is 
+with $4^{\circ}$ smaller that the leaders heading. The maximum distance reported
+by FGMS between the leader (read UAV) and the green UAV is 729 feet. The formation
+range was set to be between 300 and 500 feet. According to this the red UAV
+steers right starting at crossbar C. Near crossbar D it can be observed that 
+the red UAV stabilizes and uses the same heading as the leader. From the point
+of view of the violet UAV, there delay can be observed near crossbar D, when
+the reported distance to the leader is 778 feet. The error detected at crossbar 
+D is quickly corrected, the UAV steering right and stabilizing near the leader.
+In the same figure it than be also be observed that the module has stopped reporting
+the heading because of the collision avoidance necessity. It can be clearly observed
+that at point A the green UAV steers left, but the violet one maintains the
+same heading as the leader. The distance between the leader and the violet UAV
+in point A was reported to be 286 feet, lower that the accepted 300 feet threshold.
+At that moment the collision avoidance should assume control. When the violet UAV
+reaches point B,  the leader reaches crossbar B' having a distance of 450 feet, 
+thus determining the drone to move towards the designated position in formation.
+
+In \labelindexref{Figure}{img:delay-2} the delay has a more prominent effect.
+At crossbar A it can be seen how the green UAV receives data that correspond
+with the start of the flight path, having a heading of $45^{\circ}$. Until the
+correct data is received the distance from the leader is increased to approximately
+2300 feet. At crossbar B the green drone adopts a heading that allows it to fly
+towards the correct position. As in \labelindexref{Figure}{img:delay-1} 
+it can be observed that the violet drone considers the distance small enough
+to give control to the \textit{collision avoidance} module,  assuming
+the correct position after crossbar D.
+
+From the simulation that generated the flight path visible in 
+\labelindexref{Figure}{img:delay-1} the UAVs have used flight modes with the 
+time percentages visible in \labelindexref{Figure}{img:flight-modes}. The
+\textit{Unattended mode} is represented by the program start-up when the 
+drones are flying only with the initial startup parameters. The \textit{Unattended mode}
+is used until the first message from the \textit{Formation Flight} mode is received.
+The collision avoidance time is measured as the time as the \textit{Formation
+Flight Module} reports the same heading for a distance below the minimum accepted
+limit.
+
+\fig[scale=0.4]{src/img/flight-modes.png}{img:flight-modes}{Time percentage of
+flight modes usages.}
+
+Using FGMS to display all the drones in the same environment for a \textit{Line
+  Aster} formation  \labelindexref{Figure}{img:line2} and \labelindexref{Figure}{img:line1}
+were captured during the simulations. In the simulation for \labelindexref{Figure}{img:line2}
+the computational error introduced a lateral distance varying from 6 to 10 which
+is considered to be an acceptable error. In both simulation the leader was
+climbing constantly with a rate of $3feet/s$.
+
+\begin{figure}[p]
+\centering
+\includegraphics[scale=0.5]{src/img/line2.png}
+\caption{Line Astern with same elevation.}
+\label{img:line2}
+\includegraphics[scale=0.8]{src/img/line1.png}
+\caption{Line Astern with elevation difference.}
+% \label{img:line1}
+\label{img:line1}
+\end{figure}
+\newpage
+
+A successful formation flight simulation can be seen in \labelindexref{Figure}{img:lineqgc}.
+In this figure it can be seen that that the line formation needs a special stabilization
+mechanism for determining when the drone is on the same flight path as the leader.
+Although \labelindexref{Equation}{eqn:side-of-line} states that a point
+is on the desired line if the the $sign$ is equal to 0, computational error
+makes impossible to use this formula for perfect alignment. 
+\fig[scale=0.7]{src/img/lineqgc.png}{img:lineqgc}{Line Astern Flight Path}. 
+
+Compared to the \textit{Line Astern Formation} the \textit{V Formation} stabilizes 
+perfectly from the point of view of the heading. Once the UAV moves to the 
+correct side of the leader, it only adapts the distance until it reaches a value
+that is in the predefine range predefined of accepted distances. For example
+\labelindexref{Figure}{img:vqgc} presents the forming and maintaining of a V
+Formation. In this simulation we can also observe that there are no communication
+delays introduced, thus being an ideal simulation.
+\fig[scale=1]{src/img/vqgc.png}{img:vqgc}{V Formation Flight Path}. 
+\newpage
+The possible cause for the communication delay could be due to the 
+congestions from the network or by the intense computation executed by the FGFS
+instances needed to render all the UAVs in the same environment while communicating
+with different external modules.
+% % \todo {captures of 3 formations}
+% \todo {captures of flight-path}
+
+

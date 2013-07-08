@@ -7,26 +7,27 @@ Positioning System}, but this is not the best best solution for close range form
 
 \section{Coordinates Systems}
 \label{sec:coordinates-systems}
-The Earth has a very complex and irregular shape. For mapping the position of
+The shape of \textit{Earth} has a high degree of irregularity and complexity
+which makes it very hard for position. For mapping the position of
 the aircraft a simpler mathematical model is needed. In geodesy this simpler
 model is called \textit{figure of the Earth}, where the surface is usually
-abstracted to the \textbf{Geoid} or \textbf{ellipsoids}. The Earth is a biaxial 
-ellipsoid where the shorter axis almost matches the rotation axis \cite{gb-coordinates}.
+abstracted to the \textbf{Geoid} or \textbf{ellipsoids}. The Earth can be
+represented as an ellipsoid with two axis where the shorter one almost matches the rotation axis \cite{gb-coordinates}.
 
-Because the shape of the Earth doesn't fit perfectly on any ellipsoid, there
-are currently multiple ellipsoids that are in use. For example the GPS uses
+The fact that the Earth can't be perfectly mapped on any ellipsoid, currently
+there are used multiple mathematical models.
+For example the GPS uses
 GRS80\abbrev{GSR80}{Geodetic Reference System 1980} \cite{gsr80} and in there
 United Kingdom the Airy 1830 ellipsoid is used \cite{gb-coordinates},  being 
 designed to perfectly fit Britain only. The later ellipsoid is not useful in 
 other parts of the world. For measuring heights, it's necessary to define an
-imaginary surface that represents the \textit{zero height}. The Geoid is used
-to represent increasing heights uphill and decreasing height downhill. The
-zero height shape is commonly called \textbf{sea level}.
+imaginary surface that represents the \textit{zero height}. For the representation
+of height the geoid model is used. The zero height shape is commonly called \textbf{sea level}.
 
 \subsection{Latitude, Longitude,  Altitude}
 \label{sub-sec:lla}
-Commonly the position of the aircraft is usually done by starting with 
-two angles called latitude and longitude. These two angles define a point
+Commonly the position of the aircraft is usually done by using the longitude
+  and latitude angles. These two angles pinpoint a location
 on the ellipsoid that fits the globe. Thus it is mandatory to know with which
 ellipsoid we are working in order to have any degree of certainty. On the globe
 the North-South line are known as meridians,  and East-West lines are called 
@@ -46,7 +47,7 @@ represented by the X-Y plane, depicted in \cite{gb-coordinates} with the followi
 An alternative to the angular coordinates system is the Cartesian system. Usually
 satellites use a 3D Cartesian System called ECEF\abbrev{ECEF}{Earth Center,  Earth Fixed}
 Coordinates. For the Earth,  the convention is to have the origin of the system
-placed at the center of the planet. The center is defined as the barycenter 
+position accordingly so that it matches center of the planet. The center is defined as the barycenter 
 (center of mass of the earth) and respects the following mathematical formula:
 
 \begin{equation}
@@ -86,8 +87,9 @@ $e^{'} = \sqrt{\frac{a^{2}-b^{2}}{b^{2}}}$
 \end{description}
 
 \subsubsection{LLA to ECEF}
-The conversion in meter from LLA to ECEF is described by the following equation
-system:
+Converting a point from LLA system into ECEF system using the metric system can
+be obtained using the equations below.
+
 \begin{equation}
 \begin{cases} 
 X = (N+h)\cos \varphi \cos \lambda
@@ -101,8 +103,8 @@ where
 \begin {description}
 \item [$\varphi$] \hfill \\ = Latitude
 \item [$\lambda$] \hfill \\= Longitude
-\item [$h$] \hfill \\= Height in meters above ellipsoid
-\item [$N$] \hfill \\= Radius in meters of Curvature,  = $\frac{a}{\sqrt{1-e^{2} \sin^{2} \varphi}}$
+\item [$h$] \hfill \\= Height
+\item [$N$] \hfill \\= Curvature radius,  = $\frac{a}{\sqrt{1-e^{2} \sin^{2} \varphi}}$
 \end{description}
 
 \subsubsection{ECEF to LLA}

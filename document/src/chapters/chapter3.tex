@@ -1,12 +1,11 @@
-\chapter{UAV Management Platform}
+\chapter{Software Management Platform for UAVs}
 \label{chapter:uav-management-framework}
 
-\section{Architecture}
+\section{Platform Architecture}
 \label{sec:architecture}
 For the Autonomous UAV platform we proposed an architecture based on multiple
-agents that communicate with the \textit{Mission Supervisor} via a CAN.
-The CAN will also be able to route messages
-to other CAN buses. 
+agents that communicate with the \textit{Mission Supervisor} via a CAN buss.
+The CAN buss will also be able to route messages to other CAN buses. 
 
 The testing architecture can be seen in  \labelindexref{Figure}{img:platform-architecture}.
 
@@ -16,18 +15,22 @@ The testing architecture can be seen in  \labelindexref{Figure}{img:platform-arc
 In \labelindexref{Figure}{img:platform-architecture}, the components are as
 follows:
 \begin{description}
-\item [FG\textsubscript{1..n}\abbrev{FG}{Flight Gear Instance}] FlightGear Flight Simulator. Simulator responsible
+\item [FG\textsubscript{1..n}\abbrev{FG}{Flight Gear Instance}] FlightGear Flight Simulator. \hfill \\
+Software Simulator able to fly a single drone in a dedicated environment
+Simulator responsible
 flying a single drone.
-\item [FGMS\abbrev{FGMS}{FlightGear Multi-Player Server}] \hfill \\ FlightGear Multi-Player Server. It has the role of broadcasting
-information about UAVs between multiple instances of \textit{FlightGear Flight Simulator}
-\item [RPI\textsubscript{1..n}\abbrev{RPI}{Raspberry PI}] \hfill \\Raspberry PI Computer. Runs the \textit{Mission Supervisor}.
-\item [CAN\textsubscript{1..n}\abbrev{CAN}{Controller Area Network}] \hfill \\ CAN Interface Simulator. Mimics the behavior of 
-a CAN bus and sends messages between a \textit{Flight Gear Flight Simulator} 
-instance a \textit{Raspberry PI Mission Supervisor}
-\item [R] \hfill \\ CAN Interface Router. Broadcasts the telemetry position from one
-\textit{Flight Gear Flight Simulator} instance to the rest of the instances.
-\item [QGC\abbrev{QGC}{QGroundControl}] \hfill \\ QGroundControl. Ground Control Software responsible of collecting data
-from all the UAVs and plotting them on a map for visualizing the flight path.
+\item [FGMS\abbrev{FGMS}{FlightGear Multi-Player Server}] \hfill \\ FlightGear Multi-Player Server. 
+Multi-player server used for displaying multiple UAVs in the same FGFS flying environment.
+\item [RPI\textsubscript{1..n}\abbrev{RPI}{Raspberry PI}] \hfill \\Raspberry PI Computer. 
+Mini computer that runs the artificial intelligence software agent responsible for
+controlling each UAV.
+\item [CAN\textsubscript{1..n}\abbrev{CAN}{Controller Area Network}] \hfill \\ CAN Interface Simulator.
+Communication module simulating a CAN bus relaying messages between the software agent and FGFS
+\item [R] \hfill \\ CAN Interface Router. Telemetry router used for notifying each
+UAV of the telemetry data of the others UAVs.
+\item [QGC\abbrev{QGC}{QGroundControl}] \hfill \\ QGroundControl. Ground Control Software responsible of
+displaying the flight path of the by plotting the position of each 
+UAV based on the messages received from FGFS
 \end{description}
 
 In the Autonomous UAV project, QGC also has the role to prepare the mission plan
@@ -48,14 +51,15 @@ and passing the date to the flight modules.
 \item [Clips Engine] \hfill \\
 Rules based decision engine.
 \item [UAV State Manager] Module responsible for monitoring the state of the UAV.
-The date that it monitors includes heading, speed,  position etc.
+The monitored data by the UAV State Manager is represented by the values
+of the speed, latitude, longitude, altitude and flight direction
 \item [Navigation] \hfill \\
 Module responsible for deciding the flight path
 \item [Collision Avoidance] \hfill \\
 Reactive module responsible for detecting and avoiding in flight collisions.
 \item [Formation Flight] \hfill \\
-Module responsible for coordinating a fleet of UAVs in order to maintain a coherent
-flight formation.
+Module used for the coordination of a swarm of drones to enter and fly in
+a coherent UAV formation.
 \end{description}
 
 This thesis handles the \project module that will be integrated with the other
@@ -91,35 +95,33 @@ percentages for each.
 \section{Functionalities}
 \label{sec:functionalities}
 
-The platform has the following roles:
+The platform is designated to have the following functionalities:
 \begin{enumerate}
-\item Setting the flight mission objectives.
-\item Selecting the flight area.
-\item Selecting the aircraft types.
+\item Configuring the flight mission objectives.
+\item Configuring the desired area to be flown over.
 \item Configuring the sensors for each aircraft.
-\item Based on the settings from above, generate and upload a configuration file
-to each aircraft.
-\item After the airplanes are airborne, they will be supervised using the 
-ground control module.
-\item To control the airplanes in an autonomous way, where human intervention is
-needed as rarely as possible.
-\item Override the \textit{Mission Supervisor} or completely deactivate it, 
-switching to a RC Controlled state.
+\item Generation and auto deployment of a configuration file obtained from the
+settings configured above.
+\item Flying the airplanes in an self-driving mode with human intervention reduced
+to a minimum.
+\item Intervene in the autopilot mission by either deactivating the AI software
+agent or by reconfiguring the mission
 \end{enumerate}
 
 When using the platform,  the user will perform the actions described below.
 
 Using the custom widget built in QGroundControl which will configure the flight objectives, 
-selecting the number of aircrafts that will be launched, the type of sensor that
-will be equipped on each drone. Also the user has to create a flight path for 
+how many drones will be launched, witch kind of sensors will be carried .
+Also the user has to create a flight path for 
 each UAV if they are not flying in a tight formation. If the drone will fly in 
 a close ranged formation, the user has to designate a leader and create a flight
 plan for him, the other UAVs will follow his path. In the case of close ranged 
 formation, the user will specify the kind of formation that will be used (eg: 
   V formation, Line formation). After the mission details have been set, the user
-will generate a configuration file that contains a rule based language that
-is close to the natural language and that will be interpreted by a CLIPS engine.
-The configuration file will be uploaded on the UAVs. When the drones are ready
+will generate a configuration file that contains a rule based configuration, designed
+ to be as close as possible to natural language, and that will be parsed using
+ an inference engine based on CLIPS.
+On the drones the configuration arrives via an auto deploy mechanism. When the drones are ready
 they are airborne and the autonomous pilot module will guide the aircraft to follow the mission.
 From this point their mission can be overseen using QGroundControl where their
 flight path is displayed on the map and where their telemetry is also displayed.

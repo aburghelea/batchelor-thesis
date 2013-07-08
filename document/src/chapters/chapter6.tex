@@ -1,163 +1,175 @@
-\chapter{Use cases}
-\label{chapter:use cases}
-\section{Possible missions}
-\subsection{Search and Rescue}
+\chapter{Implementation details}
+\label{chapter:implementation-details}
 
-\textbf{Scenario} \newline
-A group of tourist are stuck on a snowy side of a mountain where human intervention
-is difficult and possibly deadly.
-\textbf{Solution} \newline
-A 3 drone fleet is dispatched to search for survivors. Each drone is equipped with a different
-type of sensor, an infrared camera, a thermal camera and a video camera. Depending
-on geography and weather conditions, none of the specified sensors would be able
-to guarantee the success of the mission while the fleet has a higher rate of success.
-In this situation a \textit{Line Astern Formation} and depending on the sensors
-different altitudes may be necessary. For accomplishing the mission the leader
-would have programed a flight route and the followers would be guided by it's
-actions. If one of the sensors detects a potential survivor the data location
-is send to the control centered where a human agent would take into account
-the information received from all the sensors and mark the zone for human 
-intervention.
+\section{Comunication between QGroundControl and FlightGear Flight Simulator}
 
-\subsection{Mapping}
-\textbf{Scenario} \newline
-An area needs to be mapped and divided into sub-zones for agricultural purposes.
-\textbf{Solution} \newline
-The zone may have a difficult geography and photographies from different
-perspectives would be needed. A fleet of 3 drones with the same type of camera
-flying in a \textit{V Formation} would provide sufficient data for a detailed 
-analysis to be conducted. The leader would have either a spiral flight path 
-or a rectangular flight path to follow. After the entire zone is swept, the data
-received from the cameras can be combined to obtain an accurate description
-of the interest area.
+Because QGroundControl uses the special \textit{heartbeat} message another
+communication, different from the already provided module. FlightGear is able 
+to send messages that contain only telemetry data and other UAV specific parameters, 
+thus making the creating of a \textit{heartbeat} message impossible.
 
-\section{Surveillance}
-\textbf{Scenario} \newline
-An traffic accident site has to be supervised and video data has to be live
-streamed to a central base.
-\textbf{Solution}
-An accident site is usually contained to a small zone, being the perfect
-candidate for a circular flight path. A situation when an object is on fire could
-generate problems for a video camera is ideal for a fleet of drones with 
-both video and infrared sensors. In this way different information can be 
-analyzed and better decisions can be made for resolving the situation.
+One approach for overcoming this shortcoming would be the development and 
+integration of a \textit{proxy} program that forwards to QGC the messages
+received from the FGFS instances. The proxy would also emit heartbeat messages
+at regular intervals of time. The drawback of this approach is represented
+by the fact that a communication delay would be introduced by this extra module.
+Another approach would be the implementation of a custom communication protocol, 
+embedded in QGC that is not based on a specific \textit{heartbeat} message.
 
-\section{Evaluation and Results}
-The approach proposed in this thesis was tested using the architecture described in
-\labelindexref{Chapter}{chapter:uav-management-framework}. Each UAV was simulated
-using a dedicated FGFS instance connected to an FGMS instance. The centralized
-data was collect for display using QGC and for manipulation the CAN Simulator
-developed for the Autonomous UAV project.
+For this thesis the MAVLink protocol was bypassed and we implemented a generic
+protocol based on the messages sent by FGFS. Qt's signal mechanism permitted
+event generation every time a message was received from FGFS.
+Two UDP sockets (one for input and one for output) for each UAV are used to
+ensure communication between QGC and FGFS. 
+Every time a message is received from FGFS it is parsed according to the XML 
+configuration used at the startup of FGFS and the position, speed, orientation
+and other parameters are set and the MAV's position is rendered on the map.
+In the proposed approach the data received from FGFS is manually parsed and 
+any message is considered to be a heartbeat message.
 
-The leader had it's own defined path where his heading was changed to steer in
-a predefined direction. The simulations included tests were the leader
-was flying in a straight line or where it changed it's direction by up to 
-$90^{\circ}$. The test had the role to observe the drones ability to follow
-the leader,  the stability of the formation and also the percentage of time
-that each UAV spent in the \textit{Synchronization Mode} or \textit{Formation Maintaining
-  Mode}
-  
+\section{Formation Flight Module Implementation}
+\label{sec:code}
 
-The Line astern formation was tested using 3 drones with two scenarios. In 
-the first scenario the followers were supposed to fly at the same altitude
-as the leader. In the second scenario the airplanes had different altitude offsets
-ranging between -40 and 40 feet. Another test scenario that was tested was 
-a V Formation.
+The formation flight module was developed using the architecture describe in 
+\labelindexref{Section}{sec:architecture}.
 
-During the simulations it has been observed that a delay in communication 
-can lead to a formation loss that sets the drones in the \textit{Synchronization Mode}.
-The effects in the communication delay can be seen in \labelindexref{Figure}{img:delay-1}
-and \labelindexref{Figure}{img:delay-2}.
+The connection between FGFS instances and QGC, the later was modified to establish
+UDP connection. For each monitored FGFS instance,  QGC opens another UDP socket
+on which it will send data back. For communication with FGFS, QGC uses a total
+number of $n+1$ sockets, n representing the number of FGFS instances and the last
+one is the UPD input socket. Also, I have modified the communication used
+by a MAV so that it does not use MAVLink. Instead it uses a generic protocol
+based on the FGFS protocol XML. Every time a message is received it is parsed
+and the position, orientation, speed and other telemetry data are set in 
+QGC; After this data has been set a refresh signal is emitted and the position
+on the map is updated for each UAV.
 
-\fig[scale=0.5]{src/img/delay-1.png}{img:delay-1}{Delay influence part. I .}
+Another QGC widgets was also developed in the \textit{Autonomous UAV} project
+where the mission details can be configured. Using this widget a human user
+can select the number of UAVs used, their flight path, the equipment for every
+drone and the leader of the formation.
 
-\fig[scale=0.5]{src/img/delay-2.png}{img:delay-2}{Delay influence part. II .}
-\newpage
-In \labelindexref{Figure}{img:delay-1} the effects of the communication delay
-is mild and it can be observed at crossbars A and D. At cross bar it can
-be seen that the green UAV receives data about the leader that correspond to 
-about 3 seconds back in time. The computation error induces a heading that is 
-with $4^{\circ}$ smaller that the leaders heading. The maximum distance reported
-by FGMS between the leader (read UAV) and the green UAV is 729 feet. The formation
-range was set to be between 300 and 500 feet. According to this the red UAV
-steers right starting at crossbar C. Near crossbar D it can be observed that 
-the red UAV stabilizes and uses the same heading as the leader. From the point
-of view of the violet UAV, there delay can be observed near crossbar D, when
-the reported distance to the leader is 778 feet. The error detected at crossbar 
-D is quickly corrected, the UAV steering right and stabilizing near the leader.
-In the same figure it than be also be observed that the module has stopped reporting
-the heading because of the collision avoidance necessity. It can be clearly observed
-that at point A the green UAV steers left, but the violet one maintains the
-same heading as the leader. The distance between the leader and the violet UAV
-in point A was reported to be 286 feet, lower that the accepted 300 feet threshold.
-At that moment the collision avoidance should assume control. When the violet UAV
-reaches point B,  the leader reaches crossbar B' having a distance of 450 feet, 
-thus determining the drone to move towards the designated position in formation.
+The formation flight module is written in C++ using the Boost library. The 
+module connects to the CAN interface simulator via a TCP socket. When the module
+will be introduced on the Hirrus drone, on the Raspberry PI a character device
+will be crated that will read data from a CAN bus. Each drone will be equipped
+with a Raspberry PI that will run a Mission Supervisor.
 
-In \labelindexref{Figure}{img:delay-2} the delay has a more prominent effect.
-At crossbar A it can be seen how the green UAV receives data that correspond
-with the start of the flight path, having a heading of $45^{\circ}$. Until the
-correct data is received the distance from the leader is increased to approximately
-2300 feet. At crossbar B the green drone adopts a heading that allows it to fly
-towards the correct position. As in \labelindexref{Figure}{img:delay-1} 
-it can be observed that the violet drone considers the distance small enough
-to give control to the \textit{collision avoidance} module,  assuming
-the correct position after crossbar D.
+At startup the module reads a JSON configuration file. The configuration
+file contains the number of drone and the geometry formation. Each UAV has
+a relative altitude to another UAV, a position (left or right) to the possible 
+leader and at what distance it should be from the other UAVs. For extensibility
+reasons the JSON also contains data about the equipment. An example of a formation
+configuration file can be seen in \labelindexref{Listing}{lst:formation-json}
 
-From the simulation that generated the flight path visible in 
-\labelindexref{Figure}{img:delay-1} the UAVs have used flight modes with the 
-time percentages visible in \labelindexref{Figure}{img:flight-modes}. The
-\textit{Unattended mode} is represented by the program start-up when the 
-drones are flying only with the initial startup parameters. The \textit{Unattended mode}
-is used until the first message from the \textit{Formation Flight} mode is received.
-The collision avoidance time is measured as the time as the \textit{Formation
-Flight Module} reports the same heading for a distance below the minimum accepted
-limit.
+After reading the JSON file, the data is store in a data structure called 
+\textbf{uav_formation}. The \textit{uav_formation} class contains the following fields
+and methods:
 
-\fig[scale=0.4]{src/img/flight-modes.png}{img:flight-modes}{Time percentage of
-flight modes usages.}
+\begin{description}
+\item [has_leader] \hfill \\ boolean flag that specifies if the formation has a UAV leader
+or a virtual leader
+\item [name] \hfill \\ the name of the formation; eg: V Formation
+\item [drones] \hfill \\ a vector of uav_drone structures that contain data about all the
+UAVs in formation.
+\item [getLeader] \hfill \\ returns the uav_drone if the formation has a UAV leader
+\item [getDrone] \hfill \\ returns the uav_drone with the desired name
+\end{description}
 
-Using FGMS to display all the drones in the same environment for a \textit{Line
-  Aster} formation  \labelindexref{Figure}{img:line2} and \labelindexref{Figure}{img:line1}
-were captured during the simulations. In the simulation for \labelindexref{Figure}{img:line2}
-the computational error introduced a lateral distance varying from 6 to 10 which
-is considered to be an acceptable error. In both simulation the leader was
-climbing constantly with a rate of $3feet/s$.
+An \textbf{uav_drone} class contains the configuration for each drone of how it
+should behave in formation and has the following fields:
 
-\begin{figure}[p]
-\centering
-\includegraphics[scale=0.5]{src/img/line2.png}
-\caption{Line Astern with same elevation.}
-\label{img:line2}
-\includegraphics[scale=0.8]{src/img/line1.png}
-\caption{Line Astern with elevation difference.}
-% \label{img:line1}
-\label{img:line1}
-\end{figure}
-\newpage
+\begin{description}
+\item [name] \hfill \\ the name of the UAV drone; eg: MAV 01
+\item [role] \hfill \\ specifies the role based on the UAV equipment; eg: Infrared Scanner
+\item [personal_space] \hfill \\ radius for a sphere were if another UAV is detected, mild
+evasive actions should be taken to avoid collision;
+\item [emergency_space] \hfill \\ radius for a shpere where if another UAV is detected, 
+the collision avoidance module will have maximum priority
+\item [is_leader] \hfill \\ boolean marker that specifies if the current drone acts
+as the leader of the formation
+\item [geometry] \hfill \\ array of uav_geometry specifying the relative position of the 
+current UAV to other UAVs
+\end{description}
 
-A successful formation flight simulation can be seen in \labelindexref{Figure}{img:lineqgc}.
-In this figure it can be seen that that the line formation needs a special stabilization
-mechanism for determining when the drone is on the same flight path as the leader.
-Although \labelindexref{Equation}{eqn:side-of-line} states that a point
-is on the desired line if the the $sign$ is equal to 0, computational error
-makes impossible to use this formula for perfect alignment. 
-\fig[scale=0.7]{src/img/lineqgc.png}{img:lineqgc}{Line Astern Flight Path}. 
+The \textbf{uav_geometry} contains data about the relative position to another drone and
+it contains the following fields:
 
-Compared to the \textit{Line Astern Formation} the \textit{V Formation} stabilizes 
-perfectly from the point of view of the heading. Once the UAV moves to the 
-correct side of the leader, it only adapts the distance until it reaches a value
-that is in the predefine range predefined of accepted distances. For example
-\labelindexref{Figure}{img:vqgc} presents the forming and maintaining of a V
-Formation. In this simulation we can also observe that there are no communication
-delays introduced, thus being an ideal simulation.
-\fig[scale=1]{src/img/vqgc.png}{img:vqgc}{V Formation Flight Path}. 
-\newpage
-The possible cause for the communication delay could be due to the 
-congestions from the network or by the intense computation executed by the FGFS
-instances needed to render all the UAVs in the same environment while communicating
-with different external modules.
-% % \todo {captures of 3 formations}
-% \todo {captures of flight-path}
+\begin{description}
+\item [relative_drone] \hfill \\ the UAV to which the geometry is relative to
+\item [distance] \hfill \\ array of three values containing the height difference
+between the UAVs, the heading multiply factor (used for determining how fast a UAV
+will turn to enter formation), the distance between the UAVs
+\end{description}
 
+The module starts to send commands to the CAN Interface as soon as initial 
+position data is available about all the UAVs. Based on the number of drones
+needed in formation, the module waits until all the necessary data is received.
+As long as the initial data is not present, the UAV flight is not influenced 
+by this module.
 
+Data about each UAV is kept in a data structure called \textbf{position_container}.
+The \textit{position_container} acts as a hash map, keeping as key the name 
+of the UAV drone and as value a pair of two \textit{uav_position} structures.
+The two \textit{uav_position} instances represent the current and previous
+positions for each aircraft.
+
+The \textbf{uav_position} class is the main class of the project and is
+responsible with creating commands for Flight Gear Instance. The class
+contains the following fields:
+
+\begin{description}
+\item [id] \hfill \\ The id/name of the UAV
+\item [latitude] \hfill \\ The GPS latitude
+\item [longitude] \hfill \\ The GPS longitude
+\item [altitude] \hfill \\ The altitude difference from sea level
+\item [heading] \hfill \\ The true heading that the UAV drone is following
+\item [speed] \hfill \\ The instantaneous speed of the UAV at the time of reporting
+\item [x] \hfill \\ Value on ECEF x-axis
+\item [y] \hfill \\ Value on ECEF y-axis
+\item [z] \hfill \\ Value on ECEF z-axis
+\end{description}
+% 
+This class is also responsible for converting the GPS coordinates to ECEF coordinates
+and back. These methods are called: \textit{lla2ecef} and \textit{ecef2lla}. In 
+this class the static method \textit{parse_uav} creates a uav_position instance
+from a message received from the CAN Simulator. The received message
+is parsed using a regular expression and the position, GPS position,  altitude, 
+altitude heading and speed. After the ECEF data is set using the method 
+\textit{lla2ecef}.
+ 
+Based on the formation configuration and current position, a command is created 
+by setting the same altitude as the leader and determining the heading 
+from the current position and and the desired position. For example, if the UAV
+is on the right of the leader and has to be on his left, the UAV receives a
+true heading that is smaller than the leaders heading. The UAV maintains this heading
+until the distance from the leader is in a desired range and is in the correct
+position. On the other hand if the UAV is on the left side of the leader and
+the formation specifies that it has to be on the left side, but the distance
+from the leader is to big, a true heading that is greater than the leader is 
+reported, until the distance is in the desired range. To determine the side on
+which the UAV resides,  from the two known position of the leader 
+the flight direction is calculated and if the point is on the left or right.
+In this calculations the altitude is ignored and considering that $A$ is the 
+leaders previous location and $B$ is the leaders current location and $C$
+is the point for which the side is computed, the formula used is the 
+cross-product is \labelindexref{Equation}{eqn:side-of-line}:
+
+\begin{equation}
+sign = \begin{vmatrix}B.x - A.x & B.y - A.y \\ C.x - A.x & C.y - A.y\end{vmatrix}
+\qquad\parbox{4.0cm}{\footnotesize$\begin{aligned} 
+  sign > 0  & \text{ point on left side of line}
+  \\[-1.0ex] sign = 0  & \text{ point on same line}
+  \\[-1.0ex] sign < 0  & \text{ point on right side of line}
+  \end{aligned}$}
+\label{eqn:side-of-line}
+\end{equation}
+
+In the conversion between GPS and ECEF, a computational error is introduced 
+in the mathematical model,  mostly because the formulas consider the Earth Radius
+of constant size. In a \textit{Line Astern} formation, this error determines
+the agents to slightly move from left to right. Also this error can be seen
+in calculating the distance between two UAVs. The distance computed in 
+ECEF coordinates system using the Euclidean formal varies from the distance 
+computed in GPS space using the Haversine formula with values ranging between
+10 and 30 meters,  for distances between 100 and 200 meters.
