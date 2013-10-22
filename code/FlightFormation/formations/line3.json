@@ -1,0 +1,67 @@
+{
+  "name": "In line formation",
+  "has_leader": true,
+  "drones": [
+    {
+      "name": "virtual",
+      "role": "-",
+      "personal_space": 0,
+      "emergency_space": 0,
+      "is_leader": true
+    },
+    {
+    "name": "MAV 01",
+    "role": "Camera",
+    "personal_space": 10,
+    "emergency_space": 10,
+    "is_leader": true
+    },
+    {
+    "name": "MAV 02",
+    "role": "Infrared",
+    "personal_space": 10,
+    "emergency_space": 5,
+    "is_leader": false
+    },
+    {
+    "name": "MAV 03",
+    "role": "Heat",
+    "personal_space": 10,
+    "emergency_space": 5,
+    "is_leader": false
+    }
+    ],
+  "geometry": [
+    
+    {
+      "drone_name": "MAV 02",
+      "relative_to": "MAV 01",
+      "radians": [
+        0,
+        0,
+        3.14
+        ],
+      "distance": 20
+    },
+    {
+      "drone_name": "MAV 03",
+      "relative_to": "MAV 02",
+      "radians": [
+        0,
+        0,
+        3.14
+        ],
+      "distance": 40
+    },
+    {
+      "drone_name": "MAV 03",
+      "relative_to": "virtual",
+      "radians": [
+        0,
+        0,
+        4.14
+        ],
+      "distance": 20
+      }, 
+    ]
+}

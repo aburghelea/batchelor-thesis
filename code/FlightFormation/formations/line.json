@@ -1,0 +1,47 @@
+{
+  "name": "In line formation",
+  "has_leader": true,
+  "drones": [
+    {
+    "name": "1",
+    "role": "Camera",
+    "personal_space": 10,
+    "emergency_space": 10,
+    "is_leader": true
+    },
+    {
+    "name": "2",
+    "role": "Infrared",
+    "personal_space": 10,
+    "emergency_space": 5,
+    "is_leader": false
+    },
+	{
+    "name": "3",
+    "role": "Infrared",
+    "personal_space": 10,
+    "emergency_space": 5,
+    "is_leader": false
+	}
+    ],
+  "geometry": [
+    
+    {
+      "drone_name": "2",
+      "relative_to": "1",
+      "distance": [
+        -20,
+        0,
+        0
+        ],
+    },
+{
+      "drone_name": "2",
+      "relative_to": "1",
+      "distance": [
+        -40,
+        0,
+        0
+        ],
+    }
+}
