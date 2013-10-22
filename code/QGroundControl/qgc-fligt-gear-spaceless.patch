@@ -1,0 +1,648 @@
+From a13c4c1ef10a7240d22ea1750756d42c39dae996 Mon Sep 17 00:00:00 2001
+From: Alexandru Burghelea <iceman.ftg@gmail.com>
+Date: Fri, 26 Apr 2013 16:16:27 +0300
+Subject: [PATCH] Connect with flight gear
+
+Signed-off-by: Alexandru Burghelea <iceman.ftg@gmail>
+---
+ src/QGCCore.cc                |   35 ++++++
+ src/comm/QGCFlightGearLink.cc |  252 +++++------------------------------------
+ src/comm/QGCFlightGearLink.h  |   21 ++--
+ src/uas/UAS.cc                |   35 ++++--
+ src/uas/UAS.h                 |   14 ++-
+ src/ui/uas/UASView.cc         |   12 +-
+ 6 files changed, 118 insertions(+), 251 deletions(-)
+
+diff --git a/src/QGCCore.cc b/src/QGCCore.cc
+index d7593b1..ea17c41 100644
+--- a/src/QGCCore.cc
++++ b/src/QGCCore.cc
+@@ -194,6 +194,41 @@ QGCCore::QGCCore(int &argc, char* argv[]) : QApplication(argc, argv)
+ //    mainWindow->close();
+ //    mainWindow->deleteLater();
+ //    QGC::SLEEP::msleep(200);
++
++    QFile flightGearConnectInfo("/home/autonomus/Desktop/airplanes");
++
++    if(!flightGearConnectInfo.open(QIODevice::ReadOnly)) {
++        qDebug() << "Nu vreau sa deschid \n";
++    }
++
++    QTextStream in(&flightGearConnectInfo);
++    while (!in.atEnd()){
++        QString line = in.readLine();
++        if (line.trimmed().size() <= 0 || line[0] == '#') {
++            continue;
++        }
++        // id fgip fgout fgin
++        qDebug() << line << "\n";
++        QStringList fgParams = line.split(" ");
++        // id fgOutput/mavInput fgInput
++        int mavId = fgParams.at(0).toInt();
++        int  mavOutput = fgParams.at(1).toInt();
++        QString mavInput = fgParams.at(2);  // in fisierul de config e 49000
++
++        MAVLinkProtocol *mavLinkProt = new MAVLinkProtocol();
++        UAS* newUASInstance = new UAS(mavLinkProt, mavId);
++        newUASInstance->setBattery(UAS::LIION, 6);
++        newUASInstance->setAirframe(UAS::QGC_AIRFRAME_EASYSTAR);
++        QGCFlightGearLink* simulation = newUASInstance->getSimulation();
++        qDebug() << "--out " << mavOutput;
++        simulation->setPort(mavOutput);
++        qDebug() << "--in " << mavInput;
++        simulation->setRemoteHost(mavInput);
++        UASManager::instance()->addUAS(newUASInstance);
++        newUASInstance->startHil();
++    }
++
++
+ }
+ 
+ /**
+diff --git a/src/comm/QGCFlightGearLink.cc b/src/comm/QGCFlightGearLink.cc
+index 5301dc9..ed7a796 100644
+--- a/src/comm/QGCFlightGearLink.cc
++++ b/src/comm/QGCFlightGearLink.cc
+@@ -39,17 +39,18 @@ This file is part of the QGROUNDCONTROL project
+ #include <QHostInfo>
+ #include "MainWindow.h"
+ 
+-QGCFlightGearLink::QGCFlightGearLink(UASInterface* mav, QString remoteHost, QHostAddress host, quint16 port) :
+-    process(NULL),
+-    terraSync(NULL)
++QGCFlightGearLink::QGCFlightGearLink(UASInterface* mav, QString remoteHost, QHostAddress host, quint16 port)
+ {
+     this->host = host;
+-    this->port = port+mav->getUASID();
++
++    this->port = port;
+     this->connectState = false;
+-    this->currentPort = 49000+mav->getUASID();
++    this->currentPort = port;
++
+     this->mav = mav;
+     this->name = tr("FlightGear Link (port:%1)").arg(port);
+     setRemoteHost(remoteHost);
++
+ }
+ 
+ QGCFlightGearLink::~QGCFlightGearLink()
+@@ -69,9 +70,11 @@ void QGCFlightGearLink::run()
+ void QGCFlightGearLink::setPort(int port)
+ {
+     this->port = port;
++    if (connectState){
+     disconnectSimulation();
+     connectSimulation();
+ }
++}
+ 
+ void QGCFlightGearLink::processError(QProcess::ProcessError err)
+ {
+@@ -122,8 +125,6 @@ void QGCFlightGearLink::setRemoteHost(const QString& host)
+                 }
+             }
+             currentHost = address;
+-            //qDebug() << "Address:" << address.toString();
+-            // Set port according to user input
+             currentPort = host.split(":").last().toInt();
+         }
+     }
+@@ -138,21 +139,6 @@ void QGCFlightGearLink::setRemoteHost(const QString& host)
+     }
+ }
+ 
+-void QGCFlightGearLink::updateControls(uint64_t time, float rollAilerons, float pitchElevator, float yawRudder, float throttle, uint8_t systemMode, uint8_t navMode)
+-{
+-    // magnetos,aileron,elevator,rudder,throttle\n
+-
+-    //float magnetos = 3.0f;
+-    Q_UNUSED(time);
+-    Q_UNUSED(systemMode);
+-    Q_UNUSED(navMode);
+-
+-    QString state("%1\t%2\t%3\t%4\t%5\n");
+-    state = state.arg(rollAilerons).arg(pitchElevator).arg(yawRudder).arg(true).arg(throttle);
+-    writeBytes(state.toAscii().constData(), state.length());
+-    //qDebug() << "Updated controls" << state;
+-}
+-
+ void QGCFlightGearLink::writeBytes(const char* data, qint64 size)
+ {
+     //#define QGCFlightGearLink_DEBUG
+@@ -204,21 +190,17 @@ void QGCFlightGearLink::readBytes()
+ 
+     QStringList values = state.split("\t");
+ 
+-    // Check length
+-    if (values.size() != 17)
+-    {
+-        qDebug() << "RETURN LENGTH MISMATCHING EXPECTED" << 17 << "BUT GOT" << values.size();
+-        qDebug() << state;
+-        return;
+-    }
+-
+     // Parse string
+     double time;
+     float roll, pitch, yaw, rollspeed, pitchspeed, yawspeed;
+     double lat, lon, alt;
+-    double vx, vy, vz, xacc, yacc, zacc;
++    double vx, vy, vz;
+     double airspeed;
++    int currentwp;
++    QString rmgrStatus;
+ 
++
++    if (values.count() >= 19) {
+     time = values.at(0).toDouble();
+     lat = values.at(1).toDouble();
+     lon = values.at(2).toDouble();
+@@ -230,30 +212,25 @@ void QGCFlightGearLink::readBytes()
+     pitchspeed = values.at(8).toDouble();
+     yawspeed = values.at(9).toDouble();
+ 
+-    xacc = values.at(10).toDouble();
+-    yacc = values.at(11).toDouble();
+-    zacc = values.at(12).toDouble();
++        vx = values.at(10).toDouble();
++        vy = values.at(11).toDouble();
++        vz = values.at(12).toDouble();
++
++        airspeed = values.at(13).toDouble();
+ 
+-    vx = values.at(13).toDouble();
+-    vy = values.at(14).toDouble();
+-    vz = values.at(15).toDouble();
++        currentwp = values.at(14).toInt();
+ 
+-    airspeed = values.at(16).toDouble();
++        rmgrStatus = values.at(15);
++
++        this->targetHeadValue = values.at(16).toDouble();
++        this->targetAltitudeValue = values.at(17).toDouble();
++        this->targetSpeedValue = values.at(18).toDouble();
+ 
+-    // Send updated state
+     emit hilStateChanged(QGC::groundTimeUsecs(), roll, pitch, yaw, rollspeed,
+                          pitchspeed, yawspeed, lat, lon, alt,
+-                         vx, vy, vz, xacc, yacc, zacc);
+-
+-    //    // Echo data for debugging purposes
+-    //    std::cerr << __FILE__ << __LINE__ << "Received datagram:" << std::endl;
+-    //    int i;
+-    //    for (i=0; i<s; i++)
+-    //    {
+-    //        unsigned int v=data[i];
+-    //        fprintf(stderr,"%02x ", v);
+-    //    }
+-    //    std::cerr << std::endl;
++                             vx, vy, vz, airspeed, currentwp, rmgrStatus);
++
++    }
+ }
+ 
+ 
+@@ -274,23 +251,8 @@ qint64 QGCFlightGearLink::bytesAvailable()
+  **/
+ bool QGCFlightGearLink::disconnectSimulation()
+ {
+-    disconnect(process, SIGNAL(error(QProcess::ProcessError)),
+-               this, SLOT(processError(QProcess::ProcessError)));
+-    disconnect(mav, SIGNAL(hilControlsChanged(uint64_t, float, float, float, float, uint8_t, uint8_t)), this, SLOT(updateControls(uint64_t,float,float,float,float,uint8_t,uint8_t)));
+-    disconnect(this, SIGNAL(hilStateChanged(uint64_t,float,float,float,float,float,float,int32_t,int32_t,int32_t,int16_t,int16_t,int16_t,int16_t,int16_t,int16_t)), mav, SLOT(sendHilState(uint64_t,float,float,float,float,float,float,int32_t,int32_t,int32_t,int16_t,int16_t,int16_t,int16_t,int16_t,int16_t)));
++    disconnect(this, SIGNAL(hilStateChanged(uint64_t,float,float,float,float,float,float,float,float,float,float,float,float,float,int,QString)), dynamic_cast<UAS*>(mav), SLOT(sendHilState(uint64_t,float,float,float,float,float,float,float,float,float,float,float,float,float,int,QString)));
+ 
+-    if (process)
+-    {
+-        process->close();
+-        delete process;
+-        process = NULL;
+-    }
+-    if (terraSync)
+-    {
+-        terraSync->close();
+-        delete terraSync;
+-        terraSync = NULL;
+-    }
+     if (socket)
+     {
+         socket->close();
+@@ -315,170 +277,17 @@ bool QGCFlightGearLink::connectSimulation()
+     if (!mav) return false;
+     socket = new QUdpSocket(this);
+     connectState = socket->bind(host, port);
+-
++    qDebug() << "Host " << host << "\n";
+     QObject::connect(socket, SIGNAL(readyRead()), this, SLOT(readBytes()));
+ 
+-    process = new QProcess(this);
+-    terraSync = new QProcess(this);
+-
+-    connect(mav, SIGNAL(hilControlsChanged(uint64_t, float, float, float, float, uint8_t, uint8_t)), this, SLOT(updateControls(uint64_t,float,float,float,float,uint8_t,uint8_t)));
+-    connect(this, SIGNAL(hilStateChanged(uint64_t,float,float,float,float,float,float,int32_t,int32_t,int32_t,int16_t,int16_t,int16_t,int16_t,int16_t,int16_t)), mav, SLOT(sendHilState(uint64_t,float,float,float,float,float,float,int32_t,int32_t,int32_t,int16_t,int16_t,int16_t,int16_t,int16_t,int16_t)));
+-
+-    //connect(&refreshTimer, SIGNAL(timeout()), this, SLOT(sendUAVUpdate()));
+-    // Catch process error
+-    QObject::connect( process, SIGNAL(error(QProcess::ProcessError)),
+-                      this, SLOT(processError(QProcess::ProcessError)));
+-    QObject::connect( terraSync, SIGNAL(error(QProcess::ProcessError)),
+-                      this, SLOT(processError(QProcess::ProcessError)));
+-    // Start Flightgear
+-    QStringList processCall;
+-    QString processFgfs;
+-    QString processTerraSync;
+-    QString fgRoot;
+-    QString fgScenery;
+-    QString aircraft;
+-
+-    if (mav->getSystemType() == MAV_TYPE_FIXED_WING)
+-    {
+-        aircraft = "Rascal110-JSBSim";
+-    }
+-    else if (mav->getSystemType() == MAV_TYPE_QUADROTOR)
+-    {
+-        aircraft = "arducopter";
+-    }
+-    else
+-    {
+-        aircraft = "Rascal110-JSBSim";
+-    }
+-
+-#ifdef Q_OS_MACX
+-    processFgfs = "/Applications/FlightGear.app/Contents/Resources/fgfs";
+-    processTerraSync = "/Applications/FlightGear.app/Contents/Resources/terrasync";
+-    fgRoot = "/Applications/FlightGear.app/Contents/Resources/data";
+-    //fgScenery = "/Applications/FlightGear.app/Contents/Resources/data/Scenery";
+-    fgScenery = "/Applications/FlightGear.app/Contents/Resources/data/Scenery-TerraSync";
+-    //   /Applications/FlightGear.app/Contents/Resources/data/Scenery:
+-#endif
+-
+-#ifdef Q_OS_WIN32
+-    processFgfs = "C:\\Program Files (x86)\\FlightGear\\bin\\Win32\\fgfs";
+-    fgRoot = "C:\\Program Files (x86)\\FlightGear\\data";
+-    fgScenery = "C:\\Program Files (x86)\\FlightGear\\data\\Scenery-Terrasync";
+-#endif
+-
+-#ifdef Q_OS_LINUX
+-    processFgfs = "fgfs";
+-    fgRoot = "/usr/share/flightgear/data";
+-    fgScenery = "/usr/share/flightgear/data/Scenery-Terrasync";
+-#endif
+-
+-    // Sanity checks
+-    bool sane = true;
+-    QFileInfo executable(processFgfs);
+-    if (!executable.isExecutable())
+-    {
+-        MainWindow::instance()->showCriticalMessage(tr("FlightGear Failed to Start"), tr("FlightGear was not found at %1").arg(processFgfs));
+-        sane = false;
+-    }
+-
+-    QFileInfo root(fgRoot);
+-    if (!root.isDir())
+-    {
+-        MainWindow::instance()->showCriticalMessage(tr("FlightGear Failed to Start"), tr("FlightGear data directory was not found at %1").arg(fgRoot));
+-        sane = false;
+-    }
+-
+-    QFileInfo scenery(fgScenery);
+-    if (!scenery.isDir())
+-    {
+-        MainWindow::instance()->showCriticalMessage(tr("FlightGear Failed to Start"), tr("FlightGear scenery directory was not found at %1").arg(fgScenery));
+-        sane = false;
+-    }
+-
+-    if (!sane) return false;
+-
+-    // --atlas=socket,out,1,localhost,5505,udp
+-    // terrasync -p 5505 -S -d /usr/local/share/TerraSync
+-
+-    processCall << QString("--fg-root=%1").arg(fgRoot);
+-    processCall << QString("--fg-scenery=%1").arg(fgScenery);
+-    if (mav->getSystemType() == MAV_TYPE_QUADROTOR)
+-    {
+-        // FIXME ADD QUAD-Specific protocol here
+-        processCall << QString("--generic=socket,out,50,127.0.0.1,%1,udp,qgroundcontrol").arg(port);
+-        processCall << QString("--generic=socket,in,50,127.0.0.1,%1,udp,qgroundcontrol").arg(currentPort);
+-    }
+-    else
+-    {
+-        processCall << QString("--generic=socket,out,50,127.0.0.1,%1,udp,qgroundcontrol").arg(port);
+-        processCall << QString("--generic=socket,in,50,127.0.0.1,%1,udp,qgroundcontrol").arg(currentPort);
+-    }
+-    processCall << "--atlas=socket,out,1,localhost,5505,udp";
+-    processCall << "--in-air";
+-    processCall << "--roll=0";
+-    processCall << "--pitch=0";
+-    processCall << "--vc=90";
+-    processCall << "--heading=300";
+-    processCall << "--timeofday=noon";
+-    processCall << "--disable-hud-3d";
+-    processCall << "--disable-fullscreen";
+-    processCall << "--geometry=400x300";
+-    processCall << "--disable-anti-alias-hud";
+-    processCall << "--wind=0@0";
+-    processCall << "--turbulence=0.0";
+-    processCall << "--prop:/sim/frame-rate-throttle-hz=30";
+-    processCall << "--control=mouse";
+-    processCall << "--disable-intro-music";
+-    processCall << "--disable-sound";
+-    processCall << "--disable-random-objects";
+-    processCall << "--disable-ai-models";
+-    processCall << "--shading-flat";
+-    processCall << "--fog-disable";
+-    processCall << "--disable-specular-highlight";
+-    //processCall << "--disable-skyblend";
+-    processCall << "--disable-random-objects";
+-    processCall << "--disable-panel";
+-    //processCall << "--disable-horizon-effect";
+-    processCall << "--disable-clouds";
+-    processCall << "--fdm=jsb";
+-    processCall << "--units-meters";
+-    if (mav->getSystemType() == MAV_TYPE_QUADROTOR)
+-    {
+-        // Start all engines of the quad
+-        processCall << "--prop:/engines/engine[0]/running=true";
+-        processCall << "--prop:/engines/engine[1]/running=true";
+-        processCall << "--prop:/engines/engine[2]/running=true";
+-        processCall << "--prop:/engines/engine[3]/running=true";
+-    }
+-    else
+-    {
+-        processCall << "--prop:/engines/engine/running=true";
+-    }
+-    processCall << QString("--lat=%1").arg(UASManager::instance()->getHomeLatitude());
+-    processCall << QString("--lon=%1").arg(UASManager::instance()->getHomeLongitude());
+-    processCall << QString("--altitude=%1").arg(UASManager::instance()->getHomeAltitude());
+-    // Add new argument with this: processCall << "";
+-    processCall << QString("--aircraft=%2").arg(aircraft);
+-
+-
+-    QStringList terraSyncArguments;
+-    terraSyncArguments << "-p 5505";
+-    terraSyncArguments << "-S";
+-    terraSyncArguments << QString("-d=%1").arg(fgScenery);
+-
+-    terraSync->start(processTerraSync, terraSyncArguments);
+-    process->start(processFgfs, processCall);
+-
+ 
++    connect(this, SIGNAL(hilStateChanged(uint64_t,float,float,float,float,float,float,float,float,float,float,float,float,float,int,QString)), dynamic_cast<UAS*>(mav), SLOT(sendHilState(uint64_t,float,float,float,float,float,float,float,float,float,float,float,float,float,int,QString)));
+ 
+     emit flightGearConnected(connectState);
+     if (connectState) {
+         emit flightGearConnected();
+         connectionStartTime = QGC::groundTimeUsecs()/1000;
+     }
+-    qDebug() << "STARTING SIM";
+-
+-        qDebug() << "STARTING: " << processFgfs << processCall;
+ 
+     start(LowPriority);
+     return connectState;
+@@ -502,5 +311,4 @@ QString QGCFlightGearLink::getName()
+ void QGCFlightGearLink::setName(QString name)
+ {
+     this->name = name;
+-    //    emit nameChanged(this->name);
+ }
+diff --git a/src/comm/QGCFlightGearLink.h b/src/comm/QGCFlightGearLink.h
+index b2445de..bc59951 100644
+--- a/src/comm/QGCFlightGearLink.h
++++ b/src/comm/QGCFlightGearLink.h
+@@ -48,7 +48,7 @@ class QGCFlightGearLink : public QThread
+     //Q_INTERFACES(QGCFlightGearLinkInterface:LinkInterface)
+ 
+ public:
+-    QGCFlightGearLink(UASInterface* mav, QString remoteHost=QString("127.0.0.1:49000"), QHostAddress host = QHostAddress::Any, quint16 port = 49005);
++    QGCFlightGearLink(UASInterface* mav, QString remoteHost=QString("127.0.0.1:49000"), QHostAddress host = QHostAddress::Any, quint16 port = 49010);
+     ~QGCFlightGearLink();
+ 
+     bool isConnected();
+@@ -69,8 +69,6 @@ public slots:
+     void setPort(int port);
+     /** @brief Add a new host to broadcast messages to */
+     void setRemoteHost(const QString& host);
+-    /** @brief Send new control states to the simulation */
+-    void updateControls(uint64_t time, float rollAilerons, float pitchElevator, float yawRudder, float throttle, uint8_t systemMode, uint8_t navMode);
+ //    /** @brief Remove a host from broadcasting messages to */
+ //    void removeHost(const QString& host);
+     //    void readPendingDatagrams();
+@@ -108,8 +106,6 @@ protected:
+     QMutex dataMutex;
+     QTimer refreshTimer;
+     UASInterface* mav;
+-    QProcess* process;
+-    QProcess* terraSync;
+ 
+     void setName(QString name);
+ 
+@@ -131,10 +127,17 @@ signals:
+ 
+     /** @brief State update from FlightGear */
+     void hilStateChanged(uint64_t time_us, float roll, float pitch, float yaw, float rollspeed,
+-                        float pitchspeed, float yawspeed, int32_t lat, int32_t lon, int32_t alt,
+-                        int16_t vx, int16_t vy, int16_t vz, int16_t xacc, int16_t yacc, int16_t zacc);
+-
+-
++                        float pitchspeed, float yawspeed, float lat, float lon, float alt,
++                        float vx, float vy, float vz, float airspeed, int currentwp, QString rmgrStatus);
++
++private:
++    double targetHeadValue;
++    double targetAltitudeValue;
++    double targetSpeedValue;
++    QString headingModeValue;
++    QString altitudeModeValue;
++    QString speedModeValue;
++    QString routeManagerStatus;
+ };
+ 
+ #endif // QGCFLIGHTGEARLINK_H
+diff --git a/src/uas/UAS.cc b/src/uas/UAS.cc
+index 4df4b57..eeb7b9b 100644
+--- a/src/uas/UAS.cc
++++ b/src/uas/UAS.cc
+@@ -547,7 +547,7 @@ void UAS::receiveMessage(LinkInterface* link, mavlink_message_t message)
+         {
+             mavlink_hil_controls_t hil;
+             mavlink_msg_hil_controls_decode(&message, &hil);
+-            emit hilControlsChanged(hil.time_usec, hil.roll_ailerons, hil.pitch_elevator, hil.yaw_rudder, hil.throttle, hil.mode, hil.nav_mode);
++            //emit hilControlsChanged(hil.time_usec, hil.roll_ailerons, hil.pitch_elevator, hil.yaw_rudder, hil.throttle, hil.mode, hil.nav_mode);
+         }
+             break;
+         case MAVLINK_MSG_ID_VFR_HUD:
+@@ -743,9 +743,7 @@ void UAS::receiveMessage(LinkInterface* link, mavlink_message_t message)
+             mavlink_param_value_t value;
+             mavlink_msg_param_value_decode(&message, &value);
+             QByteArray bytes(value.param_id, MAVLINK_MSG_PARAM_VALUE_FIELD_PARAM_ID_LEN);
+-            // Construct a string stopping at the first NUL (0) character, else copy the whole
+-            // byte array (max MAVLINK_MSG_PARAM_VALUE_FIELD_PARAM_ID_LEN, so safe)
+-            QString parameterName(bytes);
++            QString parameterName = QString(bytes);
+             int component = message.compid;
+             mavlink_param_union_t val;
+             val.param_float = value.param_value;
+@@ -1218,6 +1216,7 @@ void UAS::receiveExtendedMessage(LinkInterface* link, std::tr1::shared_ptr<googl
+ 
+ void UAS::setHomePosition(double lat, double lon, double alt)
+ {
++
+     QMessageBox msgBox;
+     msgBox.setIcon(QMessageBox::Warning);
+     msgBox.setText("Setting new World Coordinate Frame Origin");
+@@ -1226,8 +1225,9 @@ void UAS::setHomePosition(double lat, double lon, double alt)
+     msgBox.setDefaultButton(QMessageBox::Cancel);
+     int ret = msgBox.exec();
+ 
++
+     // Close the message box shortly after the click to prevent accidental clicks
+-    QTimer::singleShot(5000, &msgBox, SLOT(reject()));
++    //QTimer::singleShot(5000, &msgBox, SLOT(reject()));
+ 
+ 
+     if (ret == QMessageBox::Yes)
+@@ -1247,6 +1247,7 @@ void UAS::setHomePosition(double lat, double lon, double alt)
+         mavlink_msg_set_gps_global_origin_encode(mavlink->getSystemId(), mavlink->getComponentId(), &msg, &home);
+         sendMessage(msg);
+     }
++
+ }
+ 
+ void UAS::setLocalOriginAtCurrentGPSPosition()
+@@ -2190,7 +2191,7 @@ void UAS::setManualControlCommands(double roll, double pitch, double yaw, double
+         mavlink_message_t message;
+         mavlink_msg_manual_control_pack(mavlink->getSystemId(), mavlink->getComponentId(), &message, this->uasId, (float)manualRollAngle, (float)manualPitchAngle, (float)manualYawAngle, (float)manualThrust, controlRollManual, controlPitchManual, controlYawManual, controlThrustManual);
+         sendMessage(message);
+-        qDebug() << __FILE__ << __LINE__ << ": SENT MANUAL CONTROL MESSAGE: roll" << manualRollAngle << " pitch: " << manualPitchAngle << " yaw: " << manualYawAngle << " thrust: " << manualThrust;
++        //qDebug() << __FILE__ << __LINE__ << ": SENT MANUAL CONTROL MESSAGE: roll" << manualRollAngle << " pitch: " << manualPitchAngle << " yaw: " << manualYawAngle << " thrust: " << manualThrust;
+ 
+         emit attitudeThrustSetPointChanged(this, roll, pitch, yaw, thrust, QGC::groundTimeMilliseconds());
+     }
+@@ -2340,12 +2341,19 @@ void UAS::enableHil(bool enable)
+ * @param zacc Z acceleration (mg)
+ */
+ void UAS::sendHilState(uint64_t time_us, float roll, float pitch, float yaw, float rollspeed,
+-                       float pitchspeed, float yawspeed, int32_t lat, int32_t lon, int32_t alt,
+-                       int16_t vx, int16_t vy, int16_t vz, int16_t xacc, int16_t yacc, int16_t zacc)
++                       float pitchspeed, float yawspeed, float lat, float lon, float alt,
++                       float vx, float vy, float vz, float airspeed, int currentwp, QString rmgrStatus)
+ {
+-    mavlink_message_t msg;
+-    mavlink_msg_hil_state_pack(mavlink->getSystemId(), mavlink->getComponentId(), &msg, time_us, roll, pitch, yaw, rollspeed, pitchspeed, yawspeed, lat, lon, alt, vx, vy, vz, xacc, yacc, zacc);
+-    sendMessage(msg);
++    this->roll = roll; this->pitch = pitch; this->yaw = yaw;
++    this->latitude = lat; this->longitude = lon; this->altitude = alt;
++    this->speedX = vx; this->speedY = vy; this->speedZ = vz;
++    this->airspeed = airspeed;
++
++    emit globalPositionChanged(this, lat, lon, alt, time_us);
++    emit attitudeChanged(this, roll, pitch, yaw, time_us);
++    emit speedChanged(this, vx, vy, vz, time_us);
++
++    //qDebug() << "Received hil message at " << time_us << ": lat = " << this->latitude << " lon = " << this->longitude << " alt = " << this->altitude;
+ }
+ 
+ 
+@@ -2684,3 +2692,8 @@ void UAS::stopLowBattAlarm()
+         lowBattAlarm = false;
+     }
+ }
++
++
++QGCFlightGearLink* UAS::getSimulation() {
++    return simulation;
++}
+diff --git a/src/uas/UAS.h b/src/uas/UAS.h
+index bf6ad12..5eb9a7d 100644
+--- a/src/uas/UAS.h
++++ b/src/uas/UAS.h
+@@ -214,6 +214,7 @@ public:
+ #endif
+ 
+     friend class UASWaypointManager;
++    QGCFlightGearLink* getSimulation();
+ 
+ protected: //COMMENTS FOR TEST UNIT
+     int uasId;                    ///< Unique system ID
+@@ -282,6 +283,8 @@ protected: //COMMENTS FOR TEST UNIT
+     double speedX;              ///< True speed in X axis
+     double speedY;              ///< True speed in Y axis
+     double speedZ;              ///< True speed in Z axis
++    double airspeed;
++    double speed;
+     double roll;
+     double pitch;
+     double yaw;
+@@ -524,8 +527,8 @@ public slots:
+     /** @brief Send the full HIL state to the MAV */
+ 
+     void sendHilState(	uint64_t time_us, float roll, float pitch, float yaw, float rollspeed,
+-                        float pitchspeed, float yawspeed, int32_t lat, int32_t lon, int32_t alt,
+-                        int16_t vx, int16_t vy, int16_t vz, int16_t xacc, int16_t yacc, int16_t zacc);
++                        float pitchspeed, float yawspeed, float lat, float lon, float alt,
++                        float vx, float vy, float vz, float airspeed, int currentwp, QString rmgrStatus);
+ 
+     /** @brief Places the UAV in Hardware-in-the-Loop simulation status **/
+     void startHil();
+@@ -656,8 +659,10 @@ signals:
+     /** @brief A new camera image has arrived */
+     void imageReady(UASInterface* uas);
+     /** @brief HIL controls have changed */
+-    void hilControlsChanged(uint64_t time, float rollAilerons, float pitchElevator, float yawRudder, float throttle, uint8_t systemMode, uint8_t navMode);
+-
++//    void hilControlsChanged(float trueHeadingDeg, float targetAltitudeFt, float targetSpeedKt, QString ap_head, QString ap_alt, QString ap_speed, QString rmgr_input, QString rmgr_enable);
++    void hilHeadingCommand(float trueHeading, float targetAltitude, float targetSpeed, QString ap_head, QString ap_alt, QString ap_speed);
++    void hilRouteManagerCommand(QString rmgr_input, QString rmgr_enable);
++    void hilSpeedRouteManagerCommand(float speed, QString rmgr_input, QString rmgr_enable);
+ protected:
+     /** @brief Get the UNIX timestamp in milliseconds, enter microseconds */
+     quint64 getUnixTime(quint64 time=0);
+@@ -674,6 +679,7 @@ protected slots:
+     /** @brief Read settings from disk */
+     void readSettings();
+ 
++
+ //    // MESSAGE RECEPTION
+ //    /** @brief Receive a named value message */
+ //    void receiveMessageNamedValue(const mavlink_message_t& message);
+diff --git a/src/ui/uas/UASView.cc b/src/ui/uas/UASView.cc
+index 530274a..b151af7 100644
+--- a/src/ui/uas/UASView.cc
++++ b/src/ui/uas/UASView.cc
+@@ -187,7 +187,7 @@ void UASView::showStatusText(int uasid, int componentid, int severity, QString t
+     Q_UNUSED(uasid);
+     Q_UNUSED(componentid);
+     Q_UNUSED(severity);
+-    //m_ui->statusTextLabel->setText(text);
++    m_ui->statusTextLabel->setText(text);
+     stateDesc = text;
+ }
+ 
+@@ -387,6 +387,7 @@ void UASView::updateGlobalPosition(UASInterface* uas, double lon, double lat, do
+ void UASView::updateSpeed(UASInterface*, double x, double y, double z, quint64 usec)
+ {
+     Q_UNUSED(usec);
++
+     totalSpeed = sqrt(x*x + y*y + z*z);
+ }
+ 
+@@ -651,10 +652,11 @@ void UASView::refresh()
+ 
+         if (iconIsRed)
+         {
+-            QColor warnColor(Qt::red);
+-            m_ui->heartbeatIcon->setStyleSheet(colorstyle.arg(warnColor.name()));
+-            QString style = QString("QGroupBox { border-radius: 12px; padding: 0px; margin: 0px; border: 2px solid %1; background-color: %2; }").arg(borderColor, warnColor.name());
+-            m_ui->uasViewFrame->setStyleSheet(style);
++//            QColor warnColor(Qt::red);
++//            m_ui->heartbeatIcon->setStyleSheet(colorstyle.arg(warnColor.name()));
++//            QString style = QString("QGroupBox { border-radius: 12px; padding: 0px; margin: 0px; border: 2px solid %1; background-color: %2; }").arg(borderColor, warnColor.name());
++//            m_ui->uasViewFrame->setStyleSheet(style);
++            qDebug() << "There may be something wrong\n";
+         }
+         else
+         {
+-- 
+1.7.9.5
+
